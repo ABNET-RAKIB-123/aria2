@@ -354,12 +354,19 @@ Download folder: /srv/downloads</pre></div>
   <div class="code"><pre>curl -fsSL https://raw.githubusercontent.com/ABNET-RAKIB-123/aria2/main/install.sh | sudo DOMAIN=dl.example.com EMAIL=you@gmail.com bash</pre></div>
   <p>এরপর প্যানেল খুলবে <code>https://dl.example.com/</code> ঠিকানায়। সার্টিফিকেট ফ্রি, আর নিজে থেকেই রিনিউ হয়।</p>
   <div class="note info"><b>ℹ️ আগে থেকে ইনস্টল করা থাকলে</b>একই কমান্ড আবার চালালেই হবে। ফাইল, পাসওয়ার্ড আর Drive কানেকশন থেকে যাবে।</div>
+  <ul>
+    <li>ডোমেইনটা মনে থাকে। পরে আপডেটের সময় শুধু সাধারণ ইনস্টল কমান্ড চালালেই HTTPS থেকে যাবে।</li>
+    <li>HTTPS চালু হওয়ার পর <code>http://SERVER-IP/</code> দিয়ে আর ঢোকা যাবে না, শুধু ডোমেইন দিয়ে খুলবে।</li>
+    <li>আবার IP-তে ফিরে যেতে চাইলে: <code>... | sudo DOMAIN=none bash</code></li>
+    <li>Cloudflare ব্যবহার করলে প্রথমে DNS record <b>DNS only</b> (ধূসর মেঘ) রাখুন।</li>
+    <li>DNS record, Cloudflare, সমস্যা সমাধানসহ পুরো নিয়ম README-র <b>"HTTPS (ঐচ্ছিক)"</b> অংশে আছে।</li>
+  </ul>
 </section>
 
 <section id="manage">
   <h2>🔧 আপডেট, রিস্টার্ট ও আনইনস্টল</h2>
   <h3>নতুন ভার্সনে আপডেট</h3>
-  <p>ইনস্টলের কমান্ডটাই আবার চালান। ফাইল, পাসওয়ার্ড, Drive কানেকশন সব থেকে যাবে:</p>
+  <p>ইনস্টলের কমান্ডটাই আবার চালান। ফাইল, পাসওয়ার্ড, Drive কানেকশন, ডোমেইন আর ডাউনলোড ফোল্ডার সব মনে থাকে:</p>
   <div class="code"><pre>curl -fsSL https://raw.githubusercontent.com/ABNET-RAKIB-123/aria2/main/install.sh | sudo bash</pre></div>
   <h3>সার্ভিস চালু/বন্ধ/রিস্টার্ট</h3>
   <div class="code"><pre>sudo systemctl restart aria2 aria2-panel   # রিস্টার্ট
