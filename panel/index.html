@@ -9,12 +9,14 @@
 :root {
   --bg: #f4f6fa; --card: #ffffff; --text: #111827; --muted: #6b7280; --line: #e5e7eb;
   --accent: #2563eb; --accent-soft: #dbeafe; --ok: #16a34a; --warn: #d97706; --bad: #dc2626;
+  --warn-soft: #fef3c7; --bad-soft: #fee2e2;
   --bar: #e5e7eb; --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #0f1115; --card: #181b22; --text: #e5e7eb; --muted: #9ca3af; --line: #2a2f3a;
     --accent: #60a5fa; --accent-soft: #1e2a44; --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+    --warn-soft: #2b2310; --bad-soft: #2d1515;
     --bar: #2a2f3a; --shadow: none;
   }
 }
@@ -23,12 +25,13 @@ body { margin: 0; background: var(--bg); color: var(--text);
   font: 15px/1.5 system-ui, -apple-system, "Segoe UI", "Noto Sans Bengali", sans-serif; }
 button, input, select, textarea { font: inherit; color: inherit; }
 a { color: var(--accent); }
+code { font-size: .9em; background: var(--accent-soft); padding: 0 5px; border-radius: 4px; word-break: break-all; }
 .hidden { display: none !important; }
 
 header { background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
 .top { max-width: 1100px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.brand { font-weight: 700; font-size: 17px; display: flex; align-items: center; gap: 8px; }
-.stats { margin-left: auto; display: flex; gap: 14px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+.brand { font-weight: 700; font-size: 17px; }
+.stats { margin-left: auto; display: flex; gap: 14px; font-size: 13px; color: var(--muted); flex-wrap: wrap; align-items: center; }
 .stats b { color: var(--text); font-weight: 600; }
 nav { max-width: 1100px; margin: 0 auto; padding: 0 8px; display: flex; gap: 2px; overflow-x: auto; }
 nav button { background: none; border: 0; padding: 10px 12px; cursor: pointer; color: var(--muted);
@@ -37,21 +40,26 @@ nav button.active { color: var(--accent); border-bottom-color: var(--accent); fo
 .badge { background: var(--accent); color: #fff; border-radius: 99px; font-size: 11px; padding: 0 6px; margin-left: 4px; }
 
 main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+.banner { border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; font-size: 14px; border-left: 4px solid var(--warn); background: var(--warn-soft); }
+.banner.bad { border-color: var(--bad); background: var(--bad-soft); }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow); }
 .card h2 { margin: 0 0 12px; font-size: 16px; }
+.card h3 { margin: 14px 0 6px; font-size: 14px; }
 .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.grow { flex: 1; min-width: 160px; }
+.grow { flex: 1; min-width: 150px; }
+.mt { margin-top: 10px; }
 label.small { font-size: 13px; color: var(--muted); display: block; margin-bottom: 4px; }
-input[type=text], input[type=password], input[type=url], select, textarea {
+input[type=text], input[type=password], input[type=url], input[type=number], input[type=time], input[type=search], select, textarea {
   width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
 textarea { min-height: 90px; resize: vertical; font-family: ui-monospace, monospace; font-size: 13px; }
-.btn { border: 1px solid var(--line); background: var(--card); border-radius: 8px; padding: 7px 12px; cursor: pointer; white-space: nowrap; }
+.btn { border: 1px solid var(--line); background: var(--card); border-radius: 8px; padding: 7px 12px; cursor: pointer; white-space: nowrap; text-decoration: none; color: inherit; display: inline-block; }
 .btn:hover { border-color: var(--accent); }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
 .btn.danger { color: var(--bad); }
 .btn.sm { padding: 3px 8px; font-size: 13px; }
 .btn:disabled { opacity: .5; cursor: default; }
 .muted { color: var(--muted); font-size: 13px; }
+.switch { display: flex; align-items: center; gap: 8px; cursor: pointer; }
 
 .list { display: flex; flex-direction: column; }
 .item { display: flex; gap: 10px; align-items: center; padding: 10px 4px; border-top: 1px solid var(--line); flex-wrap: wrap; }
@@ -59,6 +67,7 @@ textarea { min-height: 90px; resize: vertical; font-family: ui-monospace, monosp
 .item .name { flex: 1; min-width: 180px; word-break: break-all; }
 .item .name.link { cursor: pointer; color: var(--accent); }
 .item .meta { font-size: 12px; color: var(--muted); }
+.item input[type=checkbox] { width: 18px; height: 18px; }
 .actions { display: flex; gap: 4px; flex-wrap: wrap; }
 .bar { height: 6px; background: var(--bar); border-radius: 99px; overflow: hidden; margin-top: 6px; }
 .bar > i { display: block; height: 100%; background: var(--accent); transition: width .4s; }
@@ -69,17 +78,28 @@ textarea { min-height: 90px; resize: vertical; font-family: ui-monospace, monosp
 .crumbs a { cursor: pointer; text-decoration: none; }
 .drop { border: 2px dashed var(--line); border-radius: 10px; padding: 14px; text-align: center; color: var(--muted); font-size: 14px; }
 .drop.over { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
-.tabs2 { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
 .empty { text-align: center; color: var(--muted); padding: 24px 0; }
 .steps { margin: 0; padding-left: 20px; }
 .steps li { margin-bottom: 10px; }
+.bulk { position: sticky; top: 92px; z-index: 3; background: var(--accent-soft); border-radius: 10px; padding: 8px 10px; margin: 8px 0; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.tile { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; background: var(--bg); position: relative; }
+.tile .thumb { aspect-ratio: 16/10; display: flex; align-items: center; justify-content: center; font-size: 40px; background: var(--bar); cursor: pointer; overflow: hidden; }
+.tile .thumb img { width: 100%; height: 100%; object-fit: cover; }
+.tile .tname { padding: 6px 8px 0; font-size: 13px; word-break: break-all; line-height: 1.3; max-height: 3.9em; overflow: hidden; }
+.tile .meta { padding: 0 8px; font-size: 11px; color: var(--muted); }
+.tile .actions { padding: 6px 8px 8px; margin-top: auto; }
+.tile input[type=checkbox] { position: absolute; top: 6px; left: 6px; width: 18px; height: 18px; }
+
+table.simple { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.simple td, table.simple th { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; }
 
 #login { max-width: 360px; margin: 12vh auto; }
 #toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 20;
   display: flex; flex-direction: column; gap: 6px; width: min(92vw, 420px); }
-#toast div { background: #111827; color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+#toast div { background: #111827; color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,.2); white-space: pre-line; }
 #toast div.err { background: var(--bad); }
-.switch { display: flex; align-items: center; gap: 8px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -88,9 +108,11 @@ textarea { min-height: 90px; resize: vertical; font-family: ui-monospace, monosp
 <section id="login" class="card hidden">
   <h2>🔐 লগইন</h2>
   <form id="loginForm">
-    <label class="small">পাসওয়ার্ড</label>
+    <label class="small">ইউজারনেম</label>
+    <input type="text" id="loginUser" autocomplete="username" placeholder="admin" autocapitalize="off">
+    <label class="small mt">পাসওয়ার্ড</label>
     <input type="password" id="loginPass" autocomplete="current-password" required>
-    <div class="row" style="margin-top:12px"><button class="btn primary grow" type="submit">লগইন</button></div>
+    <div class="row mt"><button class="btn primary grow" type="submit">লগইন</button></div>
   </form>
 </section>
 
@@ -102,31 +124,49 @@ textarea { min-height: 90px; resize: vertical; font-family: ui-monospace, monosp
       <span>⬇ <b id="stDown">0 B/s</b></span>
       <span>⬆ <b id="stUp">0 B/s</b></span>
       <span>💾 খালি <b id="stDisk">-</b></span>
-      <span>☁ Drive <b id="stDrive">-</b></span>
+      <span>👤 <b id="stUser">-</b></span>
     </div>
   </div>
   <nav id="nav">
     <button data-tab="downloads" class="active">⬇ ডাউনলোড <span class="badge hidden" id="bDl"></span></button>
-    <button data-tab="files">📁 সার্ভারের ফাইল</button>
-    <button data-tab="drive">☁ Google Drive</button>
+    <button data-tab="files">📁 ফাইল</button>
+    <button data-tab="cloud">☁ Cloud</button>
     <button data-tab="jobs">🔄 ট্রান্সফার <span class="badge hidden" id="bJobs"></span></button>
+    <button data-tab="rss" data-role="admin">📡 RSS</button>
     <button data-tab="settings">⚙ সেটিং</button>
   </nav>
 </header>
 
 <main>
+<div id="banners"></div>
+
 <!-- Downloads -->
 <section id="tab-downloads">
-  <div class="card">
+  <div class="card" data-role="user">
     <h2>➕ নতুন ডাউনলোড</h2>
-    <label class="small">লিংক দিন (প্রতি লাইনে একটা): Direct link, Magnet, Google Drive শেয়ার লিংক</label>
-    <textarea id="dlLinks" placeholder="https://example.com/file.zip&#10;magnet:?xt=urn:btih:...&#10;https://drive.google.com/file/d/..."></textarea>
-    <div class="row" style="margin-top:10px">
+    <label class="small">লিংক দিন (প্রতি লাইনে একটা): Direct link, Magnet, YouTube/Facebook ভিডিও, Google Drive শেয়ার লিংক</label>
+    <textarea id="dlLinks" placeholder="https://example.com/file.zip&#10;magnet:?xt=urn:btih:...&#10;https://youtu.be/...&#10;https://drive.google.com/file/d/..."></textarea>
+    <div class="row mt">
       <div class="grow">
-        <label class="small">কোথায় যাবে?</label>
+        <label class="small">কোথায় / কীভাবে?</label>
         <select id="dlTarget">
-          <option value="server">সার্ভারে (aria2, দ্রুত)</option>
-          <option value="drive">সরাসরি Google Drive-এ</option>
+          <option value="server">সার্ভারে (ভিডিও সাইট হলে নিজে থেকে yt-dlp)</option>
+          <option value="video">ভিডিও সাইট হিসেবে (yt-dlp, ১০০০+ সাইট)</option>
+          <option value="cloud">সরাসরি Cloud-এ (সার্ভারে জায়গা লাগবে না)</option>
+        </select>
+      </div>
+      <div class="grow hidden" id="dlRemoteBox">
+        <label class="small">Cloud একাউন্ট</label>
+        <select id="dlRemote" class="remoteSelect"></select>
+      </div>
+      <div class="grow" id="dlQualityBox">
+        <label class="small">ভিডিও কোয়ালিটি (শুধু ভিডিও সাইটের জন্য)</label>
+        <select id="dlQuality">
+          <option value="best">সবচেয়ে ভালো</option>
+          <option value="1080">1080p পর্যন্ত</option>
+          <option value="720">720p পর্যন্ত</option>
+          <option value="480">480p পর্যন্ত (কম ডাটা)</option>
+          <option value="audio">শুধু অডিও (MP3)</option>
         </select>
       </div>
       <div class="grow">
@@ -134,82 +174,124 @@ textarea { min-height: 90px; resize: vertical; font-family: ui-monospace, monosp
         <input type="text" id="dlFolder" placeholder="যেমন: Movies">
       </div>
     </div>
-    <div class="row" style="margin-top:12px">
+    <div class="row mt">
+      <label class="switch" id="dlPlaylistBox"><input type="checkbox" id="dlPlaylist"> প্লেলিস্টের সব ভিডিও নামাও</label>
+    </div>
+    <div class="row mt">
       <button class="btn primary" id="dlAdd">⬇ ডাউনলোড শুরু</button>
       <label class="btn">📄 .torrent ফাইল<input type="file" id="dlTorrent" accept=".torrent" multiple hidden></label>
-      <span class="muted">Drive লিংক বা Drive টার্গেটের জন্য আগে সেটিং-এ Drive কানেক্ট করুন।</span>
     </div>
   </div>
 
   <div class="card">
     <div class="row" style="margin-bottom:8px">
       <h2 style="margin:0" class="grow">📋 ডাউনলোড তালিকা</h2>
-      <button class="btn sm" id="dlPauseAll">⏸ সব থামাও</button>
-      <button class="btn sm" id="dlResumeAll">▶ সব চালাও</button>
-      <button class="btn sm" id="dlPurge">🧹 শেষগুলো মুছো</button>
+      <button class="btn sm" id="dlPauseAll" data-role="user">⏸ সব থামাও</button>
+      <button class="btn sm" id="dlResumeAll" data-role="user">▶ সব চালাও</button>
+      <button class="btn sm" id="dlPurge" data-role="user">🧹 শেষগুলো মুছো</button>
     </div>
     <div class="list" id="dlList"><div class="empty">কোনো ডাউনলোড নেই</div></div>
+    <p class="muted">ভিডিও (yt-dlp), zip খোলা আর Cloud-এর কাজ <b>🔄 ট্রান্সফার</b> ট্যাবে দেখায়।</p>
   </div>
 </section>
 
-<!-- Server files -->
+<!-- Files -->
 <section id="tab-files" class="hidden">
   <div class="card">
     <div class="row" style="margin-bottom:10px">
       <h2 style="margin:0" class="grow">📁 সার্ভারের ফাইল</h2>
-      <label class="btn primary">⬆ আপলোড<input type="file" id="fUpload" multiple hidden></label>
-      <button class="btn" id="fMkdir">📂 নতুন ফোল্ডার</button>
+      <label class="btn primary" data-role="user">⬆ আপলোড<input type="file" id="fUpload" multiple hidden></label>
+      <button class="btn" id="fMkdir" data-role="user">📂 নতুন ফোল্ডার</button>
+      <button class="btn" id="fView" title="লিস্ট / গ্রিড">▦</button>
       <button class="btn" id="fRefresh">🔄</button>
     </div>
-    <div class="drop" id="fDrop">এখানে ফাইল টেনে এনে ছাড়ুন (drag &amp; drop), সার্ভারে আপলোড হবে</div>
+    <div class="row">
+      <input type="search" id="fSearch" class="grow" placeholder="🔍 এই ফোল্ডারে খুঁজুন… (Enter চাপলে সব ফোল্ডারে)">
+      <select id="fSort" style="width:auto">
+        <option value="name">নাম</option>
+        <option value="date">নতুন আগে</option>
+        <option value="size">বড় আগে</option>
+      </select>
+    </div>
+    <div class="drop mt" id="fDrop" data-role="user">এখানে ফাইল টেনে এনে ছাড়ুন (drag &amp; drop), সার্ভারে আপলোড হবে</div>
     <div class="list" id="fUploads" style="margin-top:8px"></div>
     <div class="crumbs" id="fCrumbs" style="margin-top:12px"></div>
-    <div class="list" id="fList"></div>
+    <div class="bulk row hidden" id="fBulk">
+      <b id="fBulkCount" class="grow"></b>
+      <button class="btn sm" data-bulk="zip">⬇ zip করে নামাও</button>
+      <button class="btn sm" data-bulk="cloud" data-role="user">☁ Cloud-এ পাঠাও</button>
+      <button class="btn sm danger" data-bulk="delete" data-role="user">🗑 মুছো</button>
+      <button class="btn sm" data-bulk="clear">✖</button>
+    </div>
+    <div class="row muted" style="margin:4px 0"><label class="switch"><input type="checkbox" id="fSelectAll"> সব সিলেক্ট</label></div>
+    <div id="fList"></div>
   </div>
 </section>
 
-<!-- Google Drive -->
-<section id="tab-drive" class="hidden">
-  <div class="card hidden" id="gConnect">
-    <h2>☁ Google Drive কানেক্ট করুন</h2>
-    <div class="tabs2">
-      <button class="btn sm primary" data-gmode="web">সহজ পদ্ধতি (ব্রাউজারে)</button>
-      <button class="btn sm" data-gmode="token">টোকেন পদ্ধতি (rclone authorize)</button>
-    </div>
-    <div id="gWeb">
-      <ol class="steps">
-        <li><button class="btn primary" id="gStart">🔑 Google লগইন লিংক তৈরি করো</button></li>
-        <li class="hidden" id="gStep2">এই লিংক খুলে Google একাউন্টে লগইন করে <b>Allow</b> দিন:<br>
-          <a id="gLink" target="_blank" rel="noopener">Google লগইন পেজ খুলুন ↗</a></li>
-        <li class="hidden" id="gStep3">Allow দেওয়ার পর একটা পেজ আসবে যেটা <b>খুলবে না</b> (127.0.0.1 ... লেখা)। এটাই স্বাভাবিক।
-          ওই পেজের <b>address bar থেকে পুরো লিংকটা কপি</b> করে এখানে পেস্ট করুন:
-          <div class="row" style="margin-top:6px">
-            <input type="url" id="gRedirect" class="grow" placeholder="http://127.0.0.1:53682/?state=...&code=...">
-            <button class="btn primary" id="gFinish">✔ কানেক্ট</button>
-          </div></li>
-      </ol>
-    </div>
-    <div id="gToken" class="hidden">
-      <p class="muted">নিজের পিসিতে <a href="https://rclone.org/downloads/" target="_blank" rel="noopener">rclone</a> নামিয়ে চালান:
-        <code>rclone authorize "drive"</code>। লগইন শেষে যে টোকেন দেখাবে সেটা পুরোটা পেস্ট করুন।</p>
-      <textarea id="gTokenText" placeholder='{"access_token":"...","token_type":"Bearer",...}'></textarea>
-      <div class="row" style="margin-top:8px"><button class="btn primary" id="gTokenSave">✔ কানেক্ট</button></div>
+<!-- Cloud -->
+<section id="tab-cloud" class="hidden">
+  <div class="card">
+    <div class="row">
+      <div class="grow"><label class="small">Cloud একাউন্ট</label><select id="cRemote" class="remoteSelect"></select></div>
+      <button class="btn" id="cAdd" data-role="admin">➕ নতুন একাউন্ট</button>
+      <button class="btn danger" id="cRemove" data-role="admin">✖ এই একাউন্ট সরাও</button>
     </div>
   </div>
 
-  <div id="gMain" class="hidden">
-    <div class="card">
-      <div class="row" style="margin-bottom:10px">
-        <h2 style="margin:0" class="grow">☁ Google Drive <span class="muted" id="gQuota"></span></h2>
-        <label class="btn primary">⬆ পিসি থেকে Drive-এ আপলোড<input type="file" id="gUpload" multiple hidden></label>
-        <button class="btn" id="gMkdir">📂 নতুন ফোল্ডার</button>
-        <button class="btn" id="gRefresh">🔄</button>
-      </div>
-      <div class="drop" id="gDrop">এখানে ফাইল ছাড়ুন, সরাসরি Google Drive-এ আপলোড হবে</div>
-      <div class="list" id="gUploads" style="margin-top:8px"></div>
-      <div class="crumbs" id="gCrumbs" style="margin-top:12px"></div>
-      <div class="list" id="gList"></div>
+  <div class="card hidden" id="cConnect" data-role="admin">
+    <h2>☁ Cloud একাউন্ট কানেক্ট করুন</h2>
+    <div class="grow" style="max-width:320px">
+      <label class="small">কোন ধরনের?</label>
+      <select id="cType">
+        <option value="drive">Google Drive</option>
+        <option value="dropbox">Dropbox</option>
+        <option value="onedrive">OneDrive</option>
+        <option value="mega">Mega</option>
+      </select>
     </div>
+    <div id="cOauth" class="mt">
+      <ol class="steps">
+        <li><button class="btn primary" id="cStart">🔑 লগইন লিংক তৈরি করো</button></li>
+        <li class="hidden" id="cStep2">এই লিংক খুলে লগইন করে <b>Allow</b> দিন:<br>
+          <a id="cLink" target="_blank" rel="noopener">লগইন পেজ খুলুন ↗</a></li>
+        <li class="hidden" id="cStep3">এরপর একটা পেজ আসবে যেটা <b>খুলবে না</b> (127.0.0.1 ... লেখা)। এটাই স্বাভাবিক।
+          ওই পেজের <b>address bar থেকে পুরো লিংকটা কপি</b> করে এখানে পেস্ট করুন:
+          <div class="row" style="margin-top:6px">
+            <input type="url" id="cRedirect" class="grow" placeholder="http://127.0.0.1:53682/?state=...&code=...">
+            <button class="btn primary" id="cFinish">✔ কানেক্ট</button>
+          </div></li>
+      </ol>
+      <details>
+        <summary class="muted">বিকল্প: টোকেন দিয়ে কানেক্ট</summary>
+        <p class="muted">নিজের পিসিতে <a href="https://rclone.org/downloads/" target="_blank" rel="noopener">rclone</a> নামিয়ে চালান:
+          <code id="cAuthCmd">rclone authorize "drive"</code>। লগইন শেষে যে টোকেন দেখাবে সেটা পুরোটা পেস্ট করুন।</p>
+        <textarea id="cToken" placeholder='{"access_token":"...","token_type":"Bearer",...}'></textarea>
+        <div class="row mt"><button class="btn primary" id="cTokenSave">✔ কানেক্ট</button></div>
+      </details>
+    </div>
+    <div id="cMega" class="mt hidden">
+      <div class="row">
+        <div class="grow"><label class="small">Mega ইমেইল</label><input type="text" id="cMegaUser" autocomplete="off"></div>
+        <div class="grow"><label class="small">Mega পাসওয়ার্ড</label><input type="password" id="cMegaPass" autocomplete="new-password"></div>
+      </div>
+      <p class="muted">Mega-তে 2FA (দুই ধাপের লগইন) চালু থাকলে কাজ করবে না।</p>
+      <button class="btn primary" id="cMegaSave">✔ কানেক্ট</button>
+    </div>
+  </div>
+
+  <div class="card hidden" id="cEmpty"><p class="muted">কোনো Cloud একাউন্ট কানেক্ট করা নেই। admin-কে বলুন কানেক্ট করতে।</p></div>
+
+  <div class="card hidden" id="cMain">
+    <div class="row" style="margin-bottom:10px">
+      <h2 style="margin:0" class="grow"><span id="cTitle">☁</span> <span class="muted" id="cQuota"></span></h2>
+      <label class="btn primary" data-role="user">⬆ পিসি থেকে আপলোড<input type="file" id="cUpload" multiple hidden></label>
+      <button class="btn" id="cMkdir" data-role="user">📂 নতুন ফোল্ডার</button>
+      <button class="btn" id="cRefresh">🔄</button>
+    </div>
+    <div class="drop" id="cDrop" data-role="user">এখানে ফাইল ছাড়ুন, সরাসরি Cloud-এ আপলোড হবে</div>
+    <div class="list" id="cUploads" style="margin-top:8px"></div>
+    <div class="crumbs" id="cCrumbs" style="margin-top:12px"></div>
+    <div class="list" id="cList"></div>
   </div>
 </section>
 
@@ -217,43 +299,127 @@ textarea { min-height: 90px; resize: vertical; font-family: ui-monospace, monosp
 <section id="tab-jobs" class="hidden">
   <div class="card">
     <div class="row" style="margin-bottom:8px">
-      <h2 style="margin:0" class="grow">🔄 Drive ট্রান্সফার</h2>
-      <button class="btn sm" id="jClear">🧹 শেষগুলো মুছো</button>
+      <h2 style="margin:0" class="grow">🔄 ট্রান্সফার (ভিডিও, zip, Cloud)</h2>
+      <button class="btn sm" id="jClear" data-role="user">🧹 শেষগুলো মুছো</button>
     </div>
     <div class="list" id="jList"><div class="empty">কোনো ট্রান্সফার নেই</div></div>
+  </div>
+</section>
+
+<!-- RSS -->
+<section id="tab-rss" class="hidden">
+  <div class="card">
+    <h2>📡 RSS অটো ডাউনলোড</h2>
+    <p class="muted">টরেন্ট সাইট বা অন্য জায়গার RSS লিংক দিন। নতুন আইটেম এলে (ফিল্টারের সাথে মিললে) নিজে থেকে নামবে।
+      প্রথমবার পুরনোগুলো বাদ দেওয়া হয়, শুধু এরপর থেকে আসা নতুনগুলো নামে।</p>
+    <div class="row">
+      <div class="grow"><label class="small">RSS লিংক</label><input type="url" id="rUrl" placeholder="https://example.com/rss"></div>
+      <div class="grow"><label class="small">নাম (ঐচ্ছিক)</label><input type="text" id="rName" placeholder="যেমন: My Show"></div>
+      <div class="grow"><label class="small">ফিল্টার (ঐচ্ছিক)</label><input type="text" id="rFilter" placeholder="show 1080p -720p"></div>
+    </div>
+    <p class="muted">ফিল্টার: সব শব্দ নামে থাকতে হবে। শব্দের আগে <code>-</code> দিলে ওই শব্দ থাকলে বাদ। খালি রাখলে সব নামবে।</p>
+    <button class="btn primary" id="rAdd">➕ যোগ করো</button>
+  </div>
+  <div class="card">
+    <div class="row" style="margin-bottom:8px">
+      <h2 style="margin:0" class="grow">ফিড তালিকা</h2>
+      <button class="btn sm" id="rCheck">🔄 এখনই চেক করো</button>
+    </div>
+    <div class="list" id="rList"><div class="empty">কোনো ফিড নেই</div></div>
+    <div class="row mt">
+      <div class="grow"><label class="small">কোন ফোল্ডারে নামবে</label><input type="text" id="rDest"></div>
+      <div class="grow"><label class="small">কত মিনিট পরপর চেক (কমপক্ষে ৫)</label><input type="number" id="rInterval" min="5"></div>
+    </div>
+    <button class="btn primary mt" id="rSaveSettings">💾 সেভ</button>
   </div>
 </section>
 
 <!-- Settings -->
 <section id="tab-settings" class="hidden">
   <div class="card">
-    <h2>☁ Google Drive</h2>
-    <p id="sDriveState" class="muted"></p>
-    <div class="row">
-      <button class="btn" id="sDriveConnect">🔑 কানেক্ট / আবার কানেক্ট</button>
-      <button class="btn danger" id="sDriveDisconnect">⛔ ডিসকানেক্ট</button>
-    </div>
-  </div>
-  <div class="card">
-    <h2>🤖 অটো আপলোড</h2>
-    <label class="switch"><input type="checkbox" id="sAuto"> সার্ভারে ডাউনলোড শেষ হলেই Google Drive-এ পাঠাও</label>
-    <div class="row" style="margin-top:10px">
-      <div class="grow"><label class="small">Drive-এর কোন ফোল্ডারে</label><input type="text" id="sAutoDest"></div>
-    </div>
-    <label class="switch" style="margin-top:10px"><input type="checkbox" id="sAutoMove"> আপলোডের পর সার্ভার থেকে মুছে ফেলো (জায়গা বাঁচাতে)</label>
-    <div class="row" style="margin-top:12px"><button class="btn primary" id="sSave">💾 সেভ</button></div>
-  </div>
-  <div class="card">
-    <h2>🔐 পাসওয়ার্ড বদলান</h2>
+    <h2>👤 আমার একাউন্ট</h2>
+    <p class="muted" id="sMe"></p>
     <div class="row">
       <div class="grow"><label class="small">বর্তমান পাসওয়ার্ড</label><input type="password" id="pOld" autocomplete="current-password"></div>
       <div class="grow"><label class="small">নতুন পাসওয়ার্ড (৮+ অক্ষর)</label><input type="password" id="pNew" autocomplete="new-password"></div>
     </div>
-    <div class="row" style="margin-top:12px">
-      <button class="btn primary" id="pSave">বদলাও</button>
+    <div class="row mt">
+      <button class="btn primary" id="pSave">পাসওয়ার্ড বদলাও</button>
       <button class="btn danger" id="logout">🚪 লগআউট</button>
     </div>
   </div>
+
+  <div class="card" data-role="admin">
+    <h2>🚀 স্পিড আর সময়</h2>
+    <div class="row">
+      <div class="grow"><label class="small">ডাউনলোড স্পিড লিমিট (KB/s, ০ = লিমিট নেই)</label><input type="number" id="sDown" min="0"></div>
+      <div class="grow"><label class="small">আপলোড (seeding) স্পিড লিমিট (KB/s, ০ = লিমিট নেই)</label><input type="number" id="sUp" min="0"></div>
+    </div>
+    <h3>⏰ নির্দিষ্ট সময়ে ডাউনলোড</h3>
+    <label class="switch"><input type="checkbox" id="sSched"> শুধু এই সময়ের মধ্যে ডাউনলোড চলবে (বাকি সময় থেমে থাকবে)</label>
+    <div class="row mt">
+      <div class="grow"><label class="small">শুরু</label><input type="time" id="sStart"></div>
+      <div class="grow"><label class="small">শেষ</label><input type="time" id="sEnd"></div>
+    </div>
+    <p class="muted">সময় আপনার এই ডিভাইসের সময় অনুযায়ী ধরা হবে। রাতের ফ্রি ইন্টারনেট প্যাকেজের জন্য কাজে লাগে।</p>
+    <h3>💾 ডিস্ক রক্ষা</h3>
+    <div class="row">
+      <div class="grow"><label class="small">খালি জায়গা এর কম হলে সব ডাউনলোড থামাও (GB, ০ = বন্ধ)</label><input type="number" id="sGuard" min="0" step="0.5"></div>
+    </div>
+    <button class="btn primary mt" data-save="speed">💾 সেভ</button>
+  </div>
+
+  <div class="card" data-role="admin">
+    <h2>🤖 অটো আপলোড</h2>
+    <label class="switch"><input type="checkbox" id="sAuto"> সার্ভারে ডাউনলোড শেষ হলেই Cloud-এ পাঠাও</label>
+    <div class="row mt">
+      <div class="grow"><label class="small">কোন Cloud একাউন্টে</label><select id="sAutoRemote" class="remoteSelect"></select></div>
+      <div class="grow"><label class="small">কোন ফোল্ডারে</label><input type="text" id="sAutoDest"></div>
+    </div>
+    <label class="switch mt"><input type="checkbox" id="sAutoMove"> আপলোডের পর সার্ভার থেকে মুছে ফেলো (জায়গা বাঁচাতে)</label>
+    <button class="btn primary mt" data-save="auto">💾 সেভ</button>
+  </div>
+
+  <div class="card" data-role="admin">
+    <h2>✈️ Telegram বট</h2>
+    <ol class="steps muted">
+      <li>Telegram-এ <b>@BotFather</b> খুলে <code>/newbot</code> পাঠান, নাম দিন। সে একটা <b>টোকেন</b> দেবে, নিচে বসান আর সেভ করুন।</li>
+      <li>আপনার নতুন বটকে <code>/start</code> পাঠান। বট আপনার <b>Chat ID</b> বলে দেবে, নিচে বসিয়ে আবার সেভ করুন।</li>
+      <li><b>পরীক্ষা</b> চাপুন। এরপর বটকে লিংক বা .torrent ফাইল পাঠালেই ডাউনলোড শুরু হবে।</li>
+    </ol>
+    <div class="row">
+      <div class="grow"><label class="small">বট টোকেন</label><input type="password" id="sTgToken" autocomplete="off" placeholder="123456:ABC..."></div>
+      <div class="grow"><label class="small">Chat ID</label><input type="text" id="sTgChat" placeholder="123456789"></div>
+    </div>
+    <label class="switch mt"><input type="checkbox" id="sTgNotify"> ডাউনলোড শেষ/ব্যর্থ হলে মেসেজ পাঠাও</label>
+    <div class="row mt">
+      <button class="btn primary" data-save="telegram">💾 সেভ</button>
+      <button class="btn" id="sTgTest">📨 পরীক্ষা</button>
+    </div>
+  </div>
+
+  <div class="card" data-role="admin">
+    <h2>👥 ইউজার</h2>
+    <table class="simple" id="uTable"></table>
+    <h3>নতুন ইউজার / পাসওয়ার্ড বদলানো</h3>
+    <div class="row">
+      <div class="grow"><label class="small">ইউজারনেম (ইংরেজিতে)</label><input type="text" id="uName" autocapitalize="off" autocomplete="off"></div>
+      <div class="grow"><label class="small">পাসওয়ার্ড (পুরনো ইউজারের জন্য খালি = বদলাবে না)</label><input type="password" id="uPass" autocomplete="new-password"></div>
+      <div class="grow"><label class="small">অনুমতি</label>
+        <select id="uRole">
+          <option value="viewer">viewer: শুধু দেখা আর নামানো</option>
+          <option value="user" selected>user: ডাউনলোড, আপলোড, ফাইল ম্যানেজ</option>
+          <option value="admin">admin: সব কিছু (সেটিং সহ)</option>
+        </select></div>
+    </div>
+    <button class="btn primary mt" id="uSave">💾 সেভ</button>
+  </div>
+
+  <div class="card" data-role="admin">
+    <h2>🌐 প্যানেলের লিংক (Cloudflare Tunnel)</h2>
+    <p id="sTunnel" class="muted"></p>
+  </div>
+  <p class="muted" id="sVersion"></p>
 </section>
 </main>
 </div>
@@ -262,9 +428,11 @@ textarea { min-height: 90px; resize: vertical; font-family: ui-monospace, monosp
 
 <script>
 const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const enc = encodeURIComponent;
 const join = (a, b) => [a, b].filter(Boolean).join('/');
+const cleanFolder = s => s.trim().replace(/^\/+|\/+$/g, '');
 
 function fmtSize(n) {
   n = Number(n) || 0;
@@ -287,7 +455,7 @@ function toast(msg, err) {
   el.textContent = msg;
   if (err) el.className = 'err';
   $('#toast').appendChild(el);
-  setTimeout(() => el.remove(), err ? 6000 : 3000);
+  setTimeout(() => el.remove(), err ? 7000 : 3500);
 }
 
 async function api(path, opts = {}) {
@@ -307,62 +475,96 @@ async function run(fn, okMsg) {
   catch (e) { if (e.message !== 'লগইন দরকার') toast(e.message, true); }
 }
 
-// ---------- login
+// navigator.clipboard only exists on HTTPS; plain-HTTP installs need the textarea fallback.
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) {}
+  ta.remove();
+  return ok;
+}
+
+// ---------- session / roles
+let info = { role: 'viewer', remotes: [], state: {}, tools: {} };
+const RANK = { viewer: 1, user: 2, admin: 3 };
+const can = role => RANK[info.role] >= RANK[role];
+function applyRoles() {
+  $$('[data-role]').forEach(el => { el.style.display = can(el.dataset.role) ? '' : 'none'; });
+}
 function showLogin() { $('#app').classList.add('hidden'); $('#login').classList.remove('hidden'); $('#loginPass').focus(); }
 function showApp() { $('#login').classList.add('hidden'); $('#app').classList.remove('hidden'); }
 $('#loginForm').onsubmit = async e => {
   e.preventDefault();
-  try { await post('/api/login', { password: $('#loginPass').value }); $('#loginPass').value = ''; start(); }
-  catch (err) { toast(err.message, true); }
+  try {
+    await post('/api/login', { username: $('#loginUser').value.trim() || 'admin', password: $('#loginPass').value });
+    $('#loginPass').value = '';
+    start();
+  } catch (err) { toast(err.message, true); }
 };
 $('#logout').onclick = async () => { await post('/api/logout'); location.reload(); };
 
 // ---------- tabs
 let tab = 'downloads';
 function setTab(name) {
+  const btn = $(`#nav [data-tab="${name}"]`);
+  if (!btn || btn.style.display === 'none') name = 'downloads';
   tab = name;
-  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
-  document.querySelectorAll('main > section').forEach(s => s.classList.toggle('hidden', s.id !== 'tab-' + name));
+  $$('#nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  $$('main > section').forEach(s => s.classList.toggle('hidden', s.id !== 'tab-' + name));
   try { localStorage.setItem('tab', name); } catch (e) {}
   if (name === 'files') loadFiles();
-  if (name === 'drive') loadDrive();
+  if (name === 'cloud') loadCloud();
+  if (name === 'rss') loadRss();
   if (name === 'settings') loadSettings();
   tick();
 }
 $('#nav').onclick = e => { const b = e.target.closest('button'); if (b) setTab(b.dataset.tab); };
 
-// ---------- header info
-let info = { drive: false, state: {} };
+// ---------- info / banners
+function fillRemoteSelects() {
+  $$('.remoteSelect').forEach(sel => {
+    const cur = sel.value;
+    sel.innerHTML = info.remotes.map(r => `<option value="${esc(r.name)}">${esc(r.label)} (${esc(r.name)})</option>`).join('')
+      || '<option value="">কোনো Cloud একাউন্ট নেই</option>';
+    if (info.remotes.some(r => r.name === cur)) sel.value = cur;
+  });
+}
 async function loadInfo() {
   info = await api('/api/info');
   $('#stDisk').textContent = fmtSize(info.disk_free);
-  $('#stDrive').textContent = info.drive ? '✔' : '✖';
+  $('#stUser').textContent = info.user;
+  fillRemoteSelects();
+  applyRoles();
+  const b = [];
+  if (info.disk_low) b.push(['bad', `⚠️ ডিস্কে জায়গা কম (${fmtSize(info.disk_free)} খালি)। ডাউনলোড থামানো হয়েছে। কিছু ফাইল মুছে ▶ চালু করুন।`]);
+  if (info.schedule_paused) b.push(['', '⏰ এখন ডাউনলোডের সময় না (সেটিং-এ সময় ঠিক করা আছে), তাই ডাউনলোড থেমে আছে।']);
+  $('#banners').innerHTML = b.map(([c, t]) => `<div class="banner ${c}">${esc(t)}</div>`).join('');
 }
 
-// ---------- downloads (aria2)
-$('#dlTarget').onchange = () => {
-  $('#dlFolderLabel').textContent = $('#dlTarget').value === 'drive'
-    ? 'Drive-এর ফোল্ডার (খালি = My Drive)' : 'সার্ভারের ফোল্ডার (খালি = মূল ফোল্ডার)';
-};
-const isDriveLink = u => /^https?:\/\/(drive|docs)\.google\.com\//.test(u);
+// ---------- downloads
+function updateDlForm() {
+  const t = $('#dlTarget').value;
+  $('#dlRemoteBox').classList.toggle('hidden', t !== 'cloud');
+  $('#dlQualityBox').classList.toggle('hidden', t === 'cloud');
+  $('#dlPlaylistBox').classList.toggle('hidden', t === 'cloud');
+  $('#dlFolderLabel').textContent = t === 'cloud' ? 'Cloud-এর ফোল্ডার (খালি = মূল ফোল্ডার)' : 'সার্ভারের ফোল্ডার (খালি = মূল ফোল্ডার)';
+}
+$('#dlTarget').onchange = updateDlForm;
 
 $('#dlAdd').onclick = () => run(async () => {
-  const links = $('#dlLinks').value.split('\n').map(s => s.trim()).filter(Boolean);
-  if (!links.length) throw new Error('আগে লিংক দিন');
-  const target = $('#dlTarget').value, folder = $('#dlFolder').value.trim().replace(/^\/+|\/+$/g, '');
-  const driveLinks = links.filter(isDriveLink), others = links.filter(u => !isDriveLink(u));
-  for (const url of driveLinks) await post('/api/drive/link', { url, target, dest: folder });
-  if (target === 'drive') {
-    const magnets = others.filter(u => !/^https?:/.test(u));
-    if (magnets.length) throw new Error('Magnet/Torrent সরাসরি Drive-এ যায় না। সার্ভারে নামিয়ে অটো আপলোড চালু করুন।');
-    if (others.length) await post('/api/drive/copyurl', { urls: others, dest: folder });
-  } else {
-    const opts = folder ? { dir: await serverDir(folder) } : {};
-    for (const u of others) await aria('aria2.addUri', [[u], opts]);
-  }
-  $('#dlLinks').value = '';
-  toast(`${links.length}টা লিংক যোগ হয়েছে`);
-  if (driveLinks.length || target === 'drive') toast('Drive-এর কাজগুলো "ট্রান্সফার" ট্যাবে দেখুন');
+  const urls = $('#dlLinks').value.split('\n').map(s => s.trim()).filter(Boolean);
+  if (!urls.length) throw new Error('আগে লিংক দিন');
+  const r = await post('/api/add', { urls, target: $('#dlTarget').value, folder: cleanFolder($('#dlFolder').value),
+    quality: $('#dlQuality').value, playlist: $('#dlPlaylist').checked, remote: $('#dlRemote').value });
+  const parts = [];
+  if (r.aria2) parts.push(`⬇ ${r.aria2}টা ডাউনলোড শুরু`);
+  if (r.video) parts.push(`🎬 ${r.video}টা ভিডিও (ট্রান্সফার ট্যাবে দেখুন)`);
+  if (r.cloud) parts.push(`☁ ${r.cloud}টা Cloud কাজ (ট্রান্সফার ট্যাবে দেখুন)`);
+  if (parts.length) { toast(parts.join('\n')); $('#dlLinks').value = r.errors.length ? r.errors.map(e => e.split(': ')[0]).join('\n') : ''; }
+  r.errors.forEach(e => toast(e, true));
   tick();
 });
 
@@ -371,9 +573,8 @@ async function serverDir(folder) {
   if (!ariaDir) ariaDir = (await aria('aria2.getGlobalOption')).dir;
   return ariaDir.replace(/\/+$/, '') + '/' + folder;
 }
-
 $('#dlTorrent').onchange = e => run(async () => {
-  const folder = $('#dlFolder').value.trim().replace(/^\/+|\/+$/g, '');
+  const folder = cleanFolder($('#dlFolder').value);
   for (const f of e.target.files) {
     const b64 = await new Promise((ok, bad) => {
       const r = new FileReader();
@@ -418,6 +619,7 @@ async function loadDownloads() {
   if (tab !== 'downloads') return;
   const all = [...act, ...wait, ...stop.slice().reverse()];
   if (!all.length) { $('#dlList').innerHTML = '<div class="empty">কোনো ডাউনলোড নেই</div>'; return; }
+  const edit = can('user');
   $('#dlList').innerHTML = all.map(d => {
     const total = +d.totalLength, done = +d.completedLength, speed = +d.downloadSpeed;
     const pct = total ? Math.floor(done / total * 100) : 0;
@@ -429,11 +631,13 @@ async function loadDownloads() {
     }
     if (d.errorMessage) meta.push(d.errorMessage);
     const btns = [];
-    if (d.status === 'active' || d.status === 'waiting') btns.push(`<button class="btn sm" data-a="pause" data-g="${d.gid}">⏸</button>`);
-    if (d.status === 'paused') btns.push(`<button class="btn sm" data-a="unpause" data-g="${d.gid}">▶</button>`);
-    if (['active', 'waiting', 'paused'].includes(d.status)) btns.push(`<button class="btn sm danger" data-a="remove" data-g="${d.gid}">✖ বাতিল</button>`);
-    else btns.push(`<button class="btn sm" data-a="clear" data-g="${d.gid}">🧹</button>`);
-    if (d.status === 'error') btns.push(`<button class="btn sm" data-a="retry" data-g="${d.gid}">🔁 আবার</button>`);
+    if (edit) {
+      if (d.status === 'active' || d.status === 'waiting') btns.push(`<button class="btn sm" data-a="pause" data-g="${d.gid}">⏸</button>`);
+      if (d.status === 'paused') btns.push(`<button class="btn sm" data-a="unpause" data-g="${d.gid}">▶</button>`);
+      if (['active', 'waiting', 'paused'].includes(d.status)) btns.push(`<button class="btn sm danger" data-a="remove" data-g="${d.gid}">✖ বাতিল</button>`);
+      else btns.push(`<button class="btn sm" data-a="clear" data-g="${d.gid}">🧹</button>`);
+      if (d.status === 'error') btns.push(`<button class="btn sm" data-a="retry" data-g="${d.gid}">🔁 আবার</button>`);
+    }
     return `<div class="item"><div class="name">${esc(dlName(d))} <span class="pill ${cls}">${label}</span>
       <div class="meta">${esc(meta.join(' · '))}</div>
       <div class="bar ${cls}"><i style="width:${d.status === 'complete' ? 100 : pct}%"></i></div></div>
@@ -442,7 +646,7 @@ async function loadDownloads() {
 }
 $('#dlList').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
-  const g = b.dataset.g, a = b.dataset.a;
+  const g = b.dataset.g;
   const acts = {
     pause: () => aria('aria2.pause', [g]),
     unpause: () => aria('aria2.unpause', [g]),
@@ -455,84 +659,29 @@ $('#dlList').onclick = e => {
       await aria('aria2.removeDownloadResult', [g]);
     },
   };
-  run(acts[a]).then(tick);
+  run(acts[b.dataset.a]).then(tick);
 };
 
-// navigator.clipboard only exists on HTTPS; plain-HTTP installs (no domain) need the textarea fallback.
-async function copyText(text) {
-  try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.position = 'fixed';
-  ta.style.opacity = '0';
-  document.body.appendChild(ta);
-  ta.select();
-  let ok = false;
-  try { ok = document.execCommand('copy'); } catch (e) {}
-  ta.remove();
-  return ok;
-}
-
-// ---------- server files
-let fPath = '';
+// ---------- shared helpers for file lists
 function crumbs(el, path, onGo, rootLabel) {
   const parts = path ? path.split('/') : [];
-  let html = `<a data-p="">🏠 ${rootLabel}</a>`;
+  let html = `<a data-p="">🏠 ${esc(rootLabel)}</a>`;
   parts.forEach((p, i) => { html += ` / <a data-p="${esc(parts.slice(0, i + 1).join('/'))}">${esc(p)}</a>`; });
   el.innerHTML = html;
   el.onclick = e => { const a = e.target.closest('a'); if (a) onGo(a.dataset.p); };
 }
-const MEDIA = /\.(mp4|webm|mkv|mp3|m4a|ogg|wav|flac|jpg|jpeg|png|gif|webp|pdf|txt)$/i;
-
-async function loadFiles(path = fPath) {
-  const d = await run(() => api('/api/files?path=' + enc(path)));
-  if (!d) return;
-  fPath = d.path;
-  crumbs($('#fCrumbs'), fPath, p => loadFiles(p), 'সার্ভার');
-  if (!d.items.length) { $('#fList').innerHTML = '<div class="empty">ফোল্ডার খালি</div>'; return; }
-  $('#fList').innerHTML = d.items.map(i => {
-    const p = esc(join(fPath, i.name));
-    const btns = i.dir ? '' : `<a class="btn sm" href="/api/download?path=${enc(join(fPath, i.name))}" title="পিসিতে নামাও">⬇</a>`
-      + (MEDIA.test(i.name) ? `<a class="btn sm" target="_blank" href="/api/download?inline=1&path=${enc(join(fPath, i.name))}" title="ব্রাউজারে খোলো">▶</a>` : '')
-      + `<button class="btn sm" data-a="share" data-p="${p}" title="Direct link কপি">🔗</button>`;
-    return `<div class="item"><div class="name ${i.dir ? 'link' : ''}" ${i.dir ? `data-a="open" data-p="${p}"` : ''}>
-      ${i.dir ? '📁' : '📄'} ${esc(i.name)}<div class="meta">${i.dir ? 'ফোল্ডার' : fmtSize(i.size)} · ${fmtDate(i.mtime)}</div></div>
-      <div class="actions">${btns}
-        <button class="btn sm" data-a="todrive" data-p="${p}" title="Google Drive-এ পাঠাও">☁</button>
-        <button class="btn sm" data-a="rename" data-p="${p}" data-n="${esc(i.name)}" title="নাম বদলাও">✏</button>
-        <button class="btn sm danger" data-a="delete" data-p="${p}" title="মুছে ফেলো">🗑</button></div></div>`;
-  }).join('');
+const MEDIA = /\.(mp4|webm|mkv|mov|m4v|mp3|m4a|ogg|wav|flac|jpg|jpeg|png|gif|webp|pdf|txt)$/i;
+const THUMBABLE = /\.(jpg|jpeg|png|gif|webp|bmp|mp4|mkv|webm|avi|mov|m4v|flv|wmv|ts)$/i;
+const ARCHIVE = /\.(zip|rar|7z|tar|tar\.gz|tgz|tar\.bz2|tbz2|tar\.xz|txz)$/i;
+function icon(i) {
+  if (i.dir) return '📁';
+  if (/\.(mp4|mkv|webm|avi|mov|m4v|flv|wmv|ts)$/i.test(i.name)) return '🎬';
+  if (/\.(mp3|m4a|ogg|wav|flac)$/i.test(i.name)) return '🎵';
+  if (/\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(i.name)) return '🖼';
+  if (ARCHIVE.test(i.name)) return '🗜';
+  if (/\.(pdf|txt|doc|docx)$/i.test(i.name)) return '📄';
+  return '📦';
 }
-$('#fList').onclick = e => {
-  const el = e.target.closest('[data-a]'); if (!el) return;
-  const p = el.dataset.p;
-  ({
-    open: () => loadFiles(p),
-    share: () => run(async () => {
-      const d = await post('/api/share', { path: p });
-      const url = location.origin + d.url;
-      if (await copyText(url)) toast(`Direct link কপি হয়েছে (${d.days} দিন চলবে)`);
-      else prompt(`Direct link (${d.days} দিন চলবে):`, url);
-    }),
-    todrive: () => {
-      if (!info.drive) return toast('আগে Google Drive কানেক্ট করুন', true);
-      const dest = prompt('Drive-এর কোন ফোল্ডারে পাঠাবেন? (খালি = My Drive)', info.state.autoupload_dest || '');
-      if (dest === null) return;
-      run(() => post('/api/drive/upload', { path: p, dest }), 'Drive-এ পাঠানো শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন').then(tick);
-    },
-    rename: () => {
-      const name = prompt('নতুন নাম:', el.dataset.n);
-      if (name && name !== el.dataset.n) run(() => post('/api/fs/rename', { path: p, name }), 'নাম বদলেছে').then(() => loadFiles());
-    },
-    delete: () => confirm(`"${p}" মুছে ফেলবেন? এটা আর ফেরত আসবে না।`)
-      && run(() => post('/api/fs/delete', { path: p }), 'মুছে ফেলা হয়েছে').then(() => loadFiles()),
-  })[el.dataset.a]();
-};
-$('#fRefresh').onclick = () => loadFiles();
-$('#fMkdir').onclick = () => {
-  const name = prompt('নতুন ফোল্ডারের নাম:');
-  if (name) run(() => post('/api/fs/mkdir', { dir: fPath, name }), 'ফোল্ডার তৈরি হয়েছে').then(() => loadFiles());
-};
 
 function uploadFile(file, url, listEl, done) {
   const row = document.createElement('div');
@@ -569,96 +718,274 @@ function uploadFile(file, url, listEl, done) {
   row.querySelector('button').onclick = () => xhr.abort();
   xhr.send(file);
 }
-function serverUpload(files) {
-  const dir = fPath;
-  for (const f of files) uploadFile(f, `/api/upload?dir=${enc(dir)}&name=${enc(f.name)}`, $('#fUploads'), () => { if (tab === 'files') loadFiles(); });
-}
-function driveUpload(files) {
-  const dir = gPath;
-  for (const f of files) uploadFile(f, `/api/drive/put?dir=${enc(dir)}&name=${enc(f.name)}`, $('#gUploads'), () => { if (tab === 'drive') loadDrive(); });
-}
 function dropZone(el, handler) {
   el.ondragover = e => { e.preventDefault(); el.classList.add('over'); };
   el.ondragleave = () => el.classList.remove('over');
   el.ondrop = e => { e.preventDefault(); el.classList.remove('over'); handler(e.dataTransfer.files); };
 }
-$('#fUpload').onchange = e => { serverUpload(e.target.files); e.target.value = ''; };
-$('#gUpload').onchange = e => { driveUpload(e.target.files); e.target.value = ''; };
-dropZone($('#fDrop'), serverUpload);
-dropZone($('#gDrop'), driveUpload);
 
-// ---------- Google Drive
-let gPath = '';
-async function loadDrive(path = gPath) {
-  await loadInfo().catch(() => {});
-  $('#gConnect').classList.toggle('hidden', info.drive);
-  $('#gMain').classList.toggle('hidden', !info.drive);
-  if (!info.drive) return;
-  const d = await run(() => api('/api/drive/list?path=' + enc(path)));
+// ---------- server files
+let fPath = '', fItems = [], fSearchMode = false, fSelected = new Set();
+let fGrid = false;
+try { fGrid = localStorage.getItem('grid') === '1'; } catch (e) {}
+
+async function loadFiles(path = fPath) {
+  const d = await run(() => api('/api/files?path=' + enc(path)));
   if (!d) return;
-  gPath = d.path;
-  crumbs($('#gCrumbs'), gPath, p => loadDrive(p), 'My Drive');
-  if (!d.items.length) $('#gList').innerHTML = '<div class="empty">ফোল্ডার খালি</div>';
-  else $('#gList').innerHTML = d.items.map(i => {
-    const p = esc(join(gPath, i.name));
+  fPath = d.path;
+  fSearchMode = false;
+  fItems = d.items.map(i => ({ ...i, path: join(fPath, i.name) }));
+  fSelected.clear();
+  $('#fSearch').value = '';
+  crumbs($('#fCrumbs'), fPath, p => loadFiles(p), 'সার্ভার');
+  renderFiles();
+}
+async function searchAll(q) {
+  const d = await run(() => api('/api/search?q=' + enc(q)));
+  if (!d) return;
+  fSearchMode = true;
+  fItems = d.items;
+  fSelected.clear();
+  $('#fCrumbs').innerHTML = `<a data-p="">← ফিরে যাও</a> · "${esc(q)}" খোঁজার ফলাফল: ${d.items.length}টা${d.truncated ? ' (প্রথম ৩০০টা)' : ''}`;
+  $('#fCrumbs').onclick = e => { if (e.target.closest('a')) loadFiles(fPath); };
+  renderFiles();
+}
+function sortedFiles() {
+  const q = fSearchMode ? '' : $('#fSearch').value.trim().toLowerCase();
+  let items = fItems.filter(i => !q || i.name.toLowerCase().includes(q));
+  const s = $('#fSort').value;
+  const cmp = s === 'date' ? (a, b) => b.mtime - a.mtime : s === 'size' ? (a, b) => b.size - a.size
+    : (a, b) => a.name.localeCompare(b.name, undefined, { numeric: true });
+  return items.sort((a, b) => (b.dir - a.dir) || cmp(a, b));
+}
+function fileActions(i) {
+  const p = esc(i.path), dl = '/api/download?path=' + enc(i.path);
+  let h = i.dir
+    ? `<a class="btn sm" href="/api/zip?path=${enc(i.path)}" title="zip করে নামাও">⬇</a>`
+    : `<a class="btn sm" href="${dl}" title="নামাও">⬇</a>`
+      + (MEDIA.test(i.name) ? `<a class="btn sm" target="_blank" href="${dl}&inline=1" title="ব্রাউজারে খোলো">▶</a>` : '');
+  if (can('user')) {
+    if (!i.dir && ARCHIVE.test(i.name)) h += `<button class="btn sm" data-a="extract" data-p="${p}" title="খোলো (extract)">🗜</button>`;
+    h += `<button class="btn sm" data-a="share" data-p="${p}" title="Direct link">🔗</button>`
+      + `<button class="btn sm" data-a="tocloud" data-p="${p}" title="Cloud-এ পাঠাও">☁</button>`
+      + `<button class="btn sm" data-a="rename" data-p="${p}" data-n="${esc(i.name)}" title="নাম বদলাও">✏</button>`
+      + `<button class="btn sm danger" data-a="delete" data-p="${p}" title="মুছে ফেলো">🗑</button>`;
+  }
+  return h;
+}
+function renderFiles() {
+  $('#fView').textContent = fGrid ? '☰' : '▦';
+  const items = sortedFiles();
+  const sel = i => `<input type="checkbox" data-sel="${esc(i.path)}" ${fSelected.has(i.path) ? 'checked' : ''}>`;
+  if (!items.length) $('#fList').innerHTML = '<div class="empty">কিছু নেই</div>';
+  else if (fGrid) {
+    $('#fList').innerHTML = '<div class="grid">' + items.map(i => {
+      const thumb = !i.dir && THUMBABLE.test(i.name)
+        ? `<img loading="lazy" src="/api/thumb?path=${enc(i.path)}" alt="" onerror="this.replaceWith(document.createTextNode('${icon(i)}'))">` : icon(i);
+      return `<div class="tile">${sel(i)}
+        <div class="thumb" data-a="${i.dir ? 'open' : 'view'}" data-p="${esc(i.path)}">${thumb}</div>
+        <div class="tname">${esc(i.name)}</div>
+        <div class="meta">${i.dir ? 'ফোল্ডার' : fmtSize(i.size)}</div>
+        <div class="actions">${fileActions(i)}</div></div>`;
+    }).join('') + '</div>';
+  } else {
+    $('#fList').innerHTML = '<div class="list">' + items.map(i => `<div class="item">${sel(i)}
+      <div class="name ${i.dir ? 'link' : ''}" ${i.dir ? `data-a="open" data-p="${esc(i.path)}"` : ''}>
+      ${icon(i)} ${esc(fSearchMode ? i.path : i.name)}<div class="meta">${i.dir ? 'ফোল্ডার' : fmtSize(i.size)} · ${fmtDate(i.mtime)}</div></div>
+      <div class="actions">${fileActions(i)}</div></div>`).join('') + '</div>';
+  }
+  updateBulk();
+}
+function updateBulk() {
+  $('#fBulk').classList.toggle('hidden', !fSelected.size);
+  $('#fBulkCount').textContent = `${fSelected.size}টা সিলেক্ট করা`;
+  $('#fSelectAll').checked = fSelected.size > 0 && fSelected.size === sortedFiles().length;
+}
+$('#fSearch').oninput = () => { if (!fSearchMode) renderFiles(); };
+$('#fSearch').onkeydown = e => { if (e.key === 'Enter' && $('#fSearch').value.trim()) searchAll($('#fSearch').value.trim()); };
+$('#fSort').onchange = renderFiles;
+$('#fView').onclick = () => { fGrid = !fGrid; try { localStorage.setItem('grid', fGrid ? '1' : '0'); } catch (e) {} renderFiles(); };
+$('#fSelectAll').onchange = e => { fSelected = new Set(e.target.checked ? sortedFiles().map(i => i.path) : []); renderFiles(); };
+
+function askCloud(defaultDest) {
+  if (!info.remotes.length) { toast('আগে Cloud একাউন্ট কানেক্ট করুন (☁ Cloud ট্যাব)', true); return null; }
+  const names = info.remotes.map(r => r.name);
+  let remote = names[0];
+  if (names.length > 1) {
+    remote = prompt(`কোন Cloud একাউন্টে? (${names.join(', ')})`, info.state.autoupload_remote || names[0]);
+    if (remote === null) return null;
+    if (!names.includes(remote.trim())) { toast('এই নামে কোনো একাউন্ট নেই', true); return null; }
+    remote = remote.trim();
+  }
+  const dest = prompt(`${remote}-এর কোন ফোল্ডারে পাঠাবেন? (খালি = মূল ফোল্ডার)`, defaultDest || '');
+  if (dest === null) return null;
+  return { remote, dest: cleanFolder(dest) };
+}
+async function shareLink(p) {
+  const days = prompt('লিংক কত দিন চলবে? (1, 7, 30 বা 365)', '7');
+  if (days === null) return;
+  const d = await post('/api/share', { path: p, days: +days || 7 });
+  const url = location.origin + d.url;
+  if (await copyText(url)) toast(`Direct link কপি হয়েছে (${d.days} দিন চলবে)`);
+  else prompt(`Direct link (${d.days} দিন চলবে):`, url);
+}
+
+$('#fList').onclick = e => {
+  const cb = e.target.closest('[data-sel]');
+  if (cb) { cb.checked ? fSelected.add(cb.dataset.sel) : fSelected.delete(cb.dataset.sel); updateBulk(); return; }
+  const el = e.target.closest('[data-a]'); if (!el) return;
+  const p = el.dataset.p;
+  ({
+    open: () => loadFiles(p),
+    view: () => window.open('/api/download?inline=1&path=' + enc(p), '_blank'),
+    share: () => run(() => shareLink(p)),
+    extract: () => run(() => post('/api/fs/extract', { path: p }), 'খোলা শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন').then(tick),
+    tocloud: () => {
+      const c = askCloud(info.state.autoupload_dest); if (!c) return;
+      run(() => post('/api/cloud/upload', { path: p, ...c }), 'Cloud-এ পাঠানো শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন').then(tick);
+    },
+    rename: () => {
+      const name = prompt('নতুন নাম:', el.dataset.n);
+      if (name && name !== el.dataset.n) run(() => post('/api/fs/rename', { path: p, name }), 'নাম বদলেছে').then(() => loadFiles());
+    },
+    delete: () => confirm(`"${p}" মুছে ফেলবেন? এটা আর ফেরত আসবে না।`)
+      && run(() => post('/api/fs/delete', { path: p }), 'মুছে ফেলা হয়েছে').then(() => loadFiles()),
+  })[el.dataset.a]();
+};
+$('#fBulk').onclick = e => {
+  const b = e.target.closest('[data-bulk]'); if (!b) return;
+  const paths = [...fSelected];
+  ({
+    zip: () => { location.href = '/api/zip?' + paths.map(p => 'path=' + enc(p)).join('&'); },
+    cloud: () => {
+      const c = askCloud(info.state.autoupload_dest); if (!c) return;
+      run(async () => { for (const p of paths) await post('/api/cloud/upload', { path: p, ...c }); },
+        `${paths.length}টা Cloud-এ পাঠানো শুরু হয়েছে`).then(tick);
+    },
+    delete: () => confirm(`${paths.length}টা জিনিস মুছে ফেলবেন? এটা আর ফেরত আসবে না।`)
+      && run(() => post('/api/fs/delete', { paths }), 'মুছে ফেলা হয়েছে').then(() => fSearchMode ? searchAll($('#fSearch').value) : loadFiles()),
+    clear: () => { fSelected.clear(); renderFiles(); },
+  })[b.dataset.bulk]();
+};
+$('#fRefresh').onclick = () => loadFiles();
+$('#fMkdir').onclick = () => {
+  const name = prompt('নতুন ফোল্ডারের নাম:');
+  if (name) run(() => post('/api/fs/mkdir', { dir: fPath, name }), 'ফোল্ডার তৈরি হয়েছে').then(() => loadFiles());
+};
+function serverUpload(files) {
+  const dir = fPath;
+  for (const f of files) uploadFile(f, `/api/upload?dir=${enc(dir)}&name=${enc(f.name)}`, $('#fUploads'), () => { if (tab === 'files' && !fSearchMode) loadFiles(); });
+}
+$('#fUpload').onchange = e => { serverUpload(e.target.files); e.target.value = ''; };
+dropZone($('#fDrop'), serverUpload);
+
+// ---------- cloud
+let cPath = '', cAdding = false;
+const cRemote = () => $('#cRemote').value;
+async function loadCloud(path) {
+  await loadInfo().catch(() => {});
+  const has = info.remotes.length > 0;
+  $('#cConnect').classList.toggle('hidden', !(can('admin') && (!has || cAdding)));
+  $('#cEmpty').classList.toggle('hidden', has || can('admin'));
+  $('#cMain').classList.toggle('hidden', !has);
+  $('#cRemove').disabled = !has;
+  if (!has) return;
+  if (path === undefined) path = cPath;
+  const d = await run(() => api(`/api/cloud/list?remote=${enc(cRemote())}&path=${enc(path)}`));
+  if (!d) return;
+  cPath = d.path;
+  const r = info.remotes.find(x => x.name === d.remote) || {};
+  $('#cTitle').textContent = '☁ ' + (r.label || '') + ' (' + d.remote + ')';
+  crumbs($('#cCrumbs'), cPath, p => loadCloud(p), d.remote);
+  const edit = can('user');
+  if (!d.items.length) $('#cList').innerHTML = '<div class="empty">ফোল্ডার খালি</div>';
+  else $('#cList').innerHTML = d.items.map(i => {
+    const p = esc(join(cPath, i.name));
     return `<div class="item"><div class="name ${i.dir ? 'link' : ''}" ${i.dir ? `data-a="open" data-p="${p}"` : ''}>
-      ${i.dir ? '📁' : '📄'} ${esc(i.name)}<div class="meta">${i.dir ? 'ফোল্ডার' : fmtSize(i.size)} · ${fmtDate(i.mtime)}</div></div>
+      ${icon(i)} ${esc(i.name)}<div class="meta">${i.dir ? 'ফোল্ডার' : fmtSize(i.size)} · ${fmtDate(i.mtime)}</div></div>
       <div class="actions">
-        ${i.dir ? '' : `<a class="btn sm" href="/api/drive/download?path=${enc(join(gPath, i.name))}&size=${i.size}" title="পিসিতে নামাও">⬇</a>`}
-        <button class="btn sm" data-a="fetch" data-p="${p}" data-d="${i.dir ? 1 : ''}" title="সার্ভারে আনো">🖥</button>
-        <button class="btn sm danger" data-a="delete" data-p="${p}" data-d="${i.dir ? 1 : ''}" title="মুছে ফেলো (Trash-এ যাবে)">🗑</button></div></div>`;
+        ${i.dir ? '' : `<a class="btn sm" href="/api/cloud/download?remote=${enc(d.remote)}&path=${enc(join(cPath, i.name))}&size=${i.size}" title="পিসিতে নামাও">⬇</a>`}
+        ${edit ? `<button class="btn sm" data-a="fetch" data-p="${p}" data-d="${i.dir ? 1 : ''}" title="সার্ভারে আনো">🖥</button>
+        <button class="btn sm danger" data-a="delete" data-p="${p}" data-d="${i.dir ? 1 : ''}" title="মুছে ফেলো">🗑</button>` : ''}</div></div>`;
   }).join('');
-  api('/api/drive/about').then(a => {
-    $('#gQuota').textContent = a.total ? `(${fmtSize(a.used)} / ${fmtSize(a.total)} ব্যবহৃত)` : '';
+  api('/api/cloud/about?remote=' + enc(d.remote)).then(a => {
+    $('#cQuota').textContent = a.total ? `(${fmtSize(a.used)} / ${fmtSize(a.total)} ব্যবহৃত)` : '';
   }).catch(() => {});
 }
-$('#gList').onclick = e => {
+$('#cRemote').onchange = () => { cPath = ''; loadCloud(''); };
+$('#cList').onclick = e => {
   const el = e.target.closest('[data-a]'); if (!el) return;
-  const p = el.dataset.p, dir = !!el.dataset.d;
+  const p = el.dataset.p, dir = !!el.dataset.d, remote = cRemote();
   ({
-    open: () => loadDrive(p),
+    open: () => loadCloud(p),
     fetch: () => {
       const dest = prompt('সার্ভারের কোন ফোল্ডারে আনবেন? (খালি = মূল ফোল্ডার)', '');
       if (dest === null) return;
-      run(() => post('/api/drive/fetch', { path: p, dir, dest }), 'সার্ভারে আনা শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন').then(tick);
+      run(() => post('/api/cloud/fetch', { remote, path: p, dir, dest }), 'সার্ভারে আনা শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন').then(tick);
     },
-    delete: () => confirm(`Drive থেকে "${p}" মুছবেন? (Drive-এর Trash-এ যাবে)`)
-      && run(() => post('/api/drive/delete', { path: p, dir }), 'মুছে ফেলা হয়েছে').then(() => loadDrive()),
+    delete: () => confirm(`"${p}" মুছবেন?`)
+      && run(() => post('/api/cloud/delete', { remote, path: p, dir }), 'মুছে ফেলা হয়েছে').then(() => loadCloud()),
   })[el.dataset.a]();
 };
-$('#gRefresh').onclick = () => loadDrive();
-$('#gMkdir').onclick = () => {
+$('#cRefresh').onclick = () => loadCloud();
+$('#cMkdir').onclick = () => {
   const name = prompt('নতুন ফোল্ডারের নাম:');
-  if (name) run(() => post('/api/drive/mkdir', { dir: gPath, name }), 'ফোল্ডার তৈরি হয়েছে').then(() => loadDrive());
+  if (name) run(() => post('/api/cloud/mkdir', { remote: cRemote(), dir: cPath, name }), 'ফোল্ডার তৈরি হয়েছে').then(() => loadCloud());
 };
-document.querySelectorAll('[data-gmode]').forEach(b => b.onclick = () => {
-  document.querySelectorAll('[data-gmode]').forEach(x => x.classList.toggle('primary', x === b));
-  $('#gWeb').classList.toggle('hidden', b.dataset.gmode !== 'web');
-  $('#gToken').classList.toggle('hidden', b.dataset.gmode !== 'token');
-});
-$('#gStart').onclick = () => run(async () => {
-  $('#gStart').disabled = true;
+function cloudUpload(files) {
+  const dir = cPath, remote = cRemote();
+  for (const f of files) uploadFile(f, `/api/cloud/put?remote=${enc(remote)}&dir=${enc(dir)}&name=${enc(f.name)}`, $('#cUploads'), () => { if (tab === 'cloud') loadCloud(); });
+}
+$('#cUpload').onchange = e => { cloudUpload(e.target.files); e.target.value = ''; };
+dropZone($('#cDrop'), cloudUpload);
+$('#cAdd').onclick = () => { cAdding = !cAdding; loadCloud(); };
+$('#cRemove').onclick = () => {
+  const r = cRemote();
+  if (r && confirm(`"${r}" একাউন্টটা প্যানেল থেকে সরাবেন? (Cloud-এর ফাইল মুছবে না)`))
+    run(() => post('/api/cloud/remove', { remote: r }), 'সরানো হয়েছে').then(() => { cPath = ''; loadCloud(''); });
+};
+$('#cType').onchange = () => {
+  const t = $('#cType').value;
+  $('#cOauth').classList.toggle('hidden', t === 'mega');
+  $('#cMega').classList.toggle('hidden', t !== 'mega');
+  $('#cAuthCmd').textContent = `rclone authorize "${t}"`;
+  ['#cStep2', '#cStep3'].forEach(s => $(s).classList.add('hidden'));
+};
+async function afterConnect(d) {
+  toast(`কানেক্ট হয়েছে ✔ (${d.remote})`);
+  cAdding = false; cPath = '';
+  await loadInfo();
+  $('#cRemote').value = d.remote;
+  loadCloud('');
+}
+$('#cStart').onclick = () => run(async () => {
+  $('#cStart').disabled = true;
   try {
-    const d = await post('/api/drive/auth/start');
-    $('#gLink').href = d.url;
-    $('#gStep2').classList.remove('hidden');
-    $('#gStep3').classList.remove('hidden');
+    const d = await post('/api/cloud/auth/start', { type: $('#cType').value });
+    $('#cLink').href = d.url;
+    $('#cStep2').classList.remove('hidden');
+    $('#cStep3').classList.remove('hidden');
     window.open(d.url, '_blank', 'noopener');
-  } finally { $('#gStart').disabled = false; }
+  } finally { $('#cStart').disabled = false; }
 });
-async function afterConnect() { toast('Google Drive কানেক্ট হয়েছে ✔'); await loadDrive(''); }
-$('#gFinish').onclick = () => run(async () => {
-  $('#gFinish').disabled = true;
-  try { await post('/api/drive/auth/finish', { url: $('#gRedirect').value }); $('#gRedirect').value = ''; await afterConnect(); }
-  finally { $('#gFinish').disabled = false; }
+$('#cFinish').onclick = () => run(async () => {
+  $('#cFinish').disabled = true;
+  try { const d = await post('/api/cloud/auth/finish', { url: $('#cRedirect').value }); $('#cRedirect').value = ''; await afterConnect(d); }
+  finally { $('#cFinish').disabled = false; }
 });
-$('#gTokenSave').onclick = () => run(async () => {
-  await post('/api/drive/token', { token: $('#gTokenText').value });
-  $('#gTokenText').value = '';
-  await afterConnect();
+$('#cTokenSave').onclick = () => run(async () => {
+  const d = await post('/api/cloud/token', { type: $('#cType').value, token: $('#cToken').value });
+  $('#cToken').value = '';
+  await afterConnect(d);
+});
+$('#cMegaSave').onclick = () => run(async () => {
+  const d = await post('/api/cloud/mega', { user: $('#cMegaUser').value, pass: $('#cMegaPass').value });
+  $('#cMegaPass').value = '';
+  await afterConnect(d);
 });
 
 // ---------- jobs
+const KIND = { video: '🎬', archive: '🗜', cloud: '☁' };
 async function loadJobs() {
   const d = await api('/api/jobs');
   const running = d.jobs.filter(j => j.status === 'running').length;
@@ -668,10 +995,11 @@ async function loadJobs() {
   const S = { running: ['চলছে', ''], done: ['শেষ ✔', 'ok'], error: ['সমস্যা', 'bad'], cancelled: ['বাতিল', 'warn'] };
   $('#jList').innerHTML = d.jobs.map(j => {
     const [label, cls] = S[j.status];
-    return `<div class="item"><div class="name">${esc(j.title)} <span class="pill ${cls}">${label}</span>
+    const title = j.title.startsWith('🎬') || j.title.startsWith('🗜') ? j.title : (KIND[j.kind] || '') + ' ' + j.title;
+    return `<div class="item"><div class="name">${esc(title)} <span class="pill ${cls}">${label}</span>
       <div class="meta">${esc(j.error || j.info || (j.status === 'running' ? 'শুরু হচ্ছে...' : ''))} · ${fmtDate(j.started)}</div>
       <div class="bar ${cls}"><i style="width:${j.progress}%"></i></div></div>
-      <div class="actions">${j.status === 'running' ? `<button class="btn sm danger" data-id="${j.id}">✖ বাতিল</button>` : ''}</div></div>`;
+      <div class="actions">${j.status === 'running' && can('user') ? `<button class="btn sm danger" data-id="${j.id}">✖ বাতিল</button>` : ''}</div></div>`;
   }).join('');
 }
 $('#jList').onclick = e => {
@@ -680,42 +1008,115 @@ $('#jList').onclick = e => {
 };
 $('#jClear').onclick = () => run(() => post('/api/jobs/clear')).then(tick);
 
+// ---------- RSS
+let rssFeeds = [];
+async function loadRss() {
+  const d = await run(() => api('/api/rss'));
+  if (!d) return;
+  rssFeeds = d.feeds;
+  $('#rDest').value = d.dest;
+  $('#rInterval').value = d.interval;
+  if (!rssFeeds.length) { $('#rList').innerHTML = '<div class="empty">কোনো ফিড নেই</div>'; return; }
+  $('#rList').innerHTML = rssFeeds.map((f, i) => {
+    const s = d.status[f.id];
+    const st = s ? `শেষ চেক: ${fmtDate(s.checked)} · নতুন: ${s.added}${s.error ? ' · ' + s.error : ''}` : 'এখনো চেক হয়নি';
+    return `<div class="item"><div class="name">${esc(f.name || f.url)} ${f.enabled ? '' : '<span class="pill warn">বন্ধ</span>'}
+      <div class="meta">${esc(f.url)}</div>
+      <div class="meta">ফিল্টার: ${esc(f.filter || '(সব)')} · ${esc(st)}</div></div>
+      <div class="actions"><button class="btn sm" data-i="${i}" data-a="toggle">${f.enabled ? '⏸ বন্ধ' : '▶ চালু'}</button>
+      <button class="btn sm danger" data-i="${i}" data-a="del">🗑</button></div></div>`;
+  }).join('');
+}
+async function saveFeeds() { await post('/api/rss/save', { feeds: rssFeeds }); await loadRss(); }
+$('#rAdd').onclick = () => run(async () => {
+  const url = $('#rUrl').value.trim();
+  if (!url) throw new Error('RSS লিংক দিন');
+  rssFeeds.push({ url, name: $('#rName').value.trim(), filter: $('#rFilter').value.trim(), enabled: true });
+  try { await saveFeeds(); } catch (e) { rssFeeds.pop(); throw e; }
+  $('#rUrl').value = $('#rName').value = $('#rFilter').value = '';
+}, 'ফিড যোগ হয়েছে');
+$('#rList').onclick = e => {
+  const b = e.target.closest('button[data-i]'); if (!b) return;
+  const i = +b.dataset.i;
+  if (b.dataset.a === 'toggle') rssFeeds[i].enabled = !rssFeeds[i].enabled;
+  else if (!confirm('এই ফিড মুছবেন?')) return;
+  else rssFeeds.splice(i, 1);
+  run(saveFeeds);
+};
+$('#rCheck').onclick = () => run(async () => {
+  $('#rCheck').disabled = true;
+  try { const d = await post('/api/rss/check'); toast(`${d.added}টা নতুন ডাউনলোড যোগ হয়েছে`); await loadRss(); }
+  finally { $('#rCheck').disabled = false; }
+});
+$('#rSaveSettings').onclick = () => run(() => post('/api/settings', { rss_dest: $('#rDest').value, rss_interval_min: +$('#rInterval').value || 15 }), 'সেভ হয়েছে');
+
 // ---------- settings
 async function loadSettings() {
   await loadInfo();
-  $('#sDriveState').textContent = info.drive ? '✔ Google Drive কানেক্ট আছে।' : '✖ Google Drive কানেক্ট করা নেই।';
-  $('#sAuto').checked = info.state.autoupload;
-  $('#sAutoDest').value = info.state.autoupload_dest;
-  $('#sAutoMove').checked = info.state.autoupload_move;
+  const s = info.state;
+  $('#sMe').textContent = `ইউজার: ${info.user} · অনুমতি: ${info.role}`;
+  $('#sVersion').textContent = `প্যানেল ভার্সন ${info.version}`;
+  if (!can('admin')) return;
+  $('#sDown').value = s.speed_down_kb; $('#sUp').value = s.speed_up_kb;
+  $('#sSched').checked = s.schedule_enabled; $('#sStart').value = s.schedule_start; $('#sEnd').value = s.schedule_end;
+  $('#sGuard').value = s.disk_guard_gb;
+  $('#sAuto').checked = s.autoupload; $('#sAutoDest').value = s.autoupload_dest; $('#sAutoMove').checked = s.autoupload_move;
+  if (s.autoupload_remote) $('#sAutoRemote').value = s.autoupload_remote;
+  $('#sTgToken').value = s.telegram_token; $('#sTgChat').value = s.telegram_chat; $('#sTgNotify').checked = s.telegram_notify;
+  $('#sTunnel').innerHTML = info.tunnel
+    ? `চালু আছে: <a href="${esc(info.tunnel)}" target="_blank" rel="noopener">${esc(info.tunnel)}</a><br>সার্ভার রিস্টার্ট হলে লিংক বদলে যায়। Telegram চালু থাকলে নতুন লিংক মেসেজে আসবে।`
+    : 'বন্ধ আছে। ডোমেইন ছাড়া ফ্রি HTTPS লিংক চাইলে সার্ভারে চালান: <code>curl -fsSL https://raw.githubusercontent.com/ABNET-RAKIB-123/aria2/main/install.sh | sudo TUNNEL=1 bash</code>';
+  const u = await api('/api/users');
+  const R = { viewer: 'viewer (শুধু দেখা)', user: 'user', admin: 'admin' };
+  $('#uTable').innerHTML = '<tr><th>ইউজার</th><th>অনুমতি</th><th></th></tr>' + u.users.map(x =>
+    `<tr><td>${esc(x.name)}${x.name === info.user ? ' (আপনি)' : ''}</td><td>${R[x.role]}</td>
+     <td><button class="btn sm" data-edit="${esc(x.name)}" data-role-v="${x.role}">✏</button>
+     ${x.name === info.user ? '' : `<button class="btn sm danger" data-del="${esc(x.name)}">🗑</button>`}</td></tr>`).join('');
 }
-$('#sSave').onclick = () => run(async () => {
-  if ($('#sAuto').checked && !info.drive) throw new Error('আগে Google Drive কানেক্ট করুন');
-  await post('/api/settings', { autoupload: $('#sAuto').checked, autoupload_dest: $('#sAutoDest').value, autoupload_move: $('#sAutoMove').checked });
-  await loadSettings();
-}, 'সেভ হয়েছে');
-$('#sDriveConnect').onclick = async () => {
-  if (info.drive && !confirm('আবার কানেক্ট করলে আগের কানেকশন বদলে যাবে। চালিয়ে যাবেন?')) return;
-  if (info.drive) await run(() => post('/api/drive/disconnect'));
-  setTab('drive');
+const SAVE = {
+  speed: () => ({ speed_down_kb: +$('#sDown').value || 0, speed_up_kb: +$('#sUp').value || 0,
+    schedule_enabled: $('#sSched').checked, schedule_start: $('#sStart').value || '01:00', schedule_end: $('#sEnd').value || '08:00',
+    tz_offset_min: -new Date().getTimezoneOffset(), disk_guard_gb: +$('#sGuard').value || 0 }),
+  auto: () => {
+    if ($('#sAuto').checked && !info.remotes.length) throw new Error('আগে Cloud একাউন্ট কানেক্ট করুন');
+    return { autoupload: $('#sAuto').checked, autoupload_remote: $('#sAutoRemote').value, autoupload_dest: $('#sAutoDest').value, autoupload_move: $('#sAutoMove').checked };
+  },
+  telegram: () => ({ telegram_token: $('#sTgToken').value, telegram_chat: $('#sTgChat').value, telegram_notify: $('#sTgNotify').checked }),
 };
-$('#sDriveDisconnect').onclick = () => confirm('Google Drive ডিসকানেক্ট করবেন?')
-  && run(() => post('/api/drive/disconnect'), 'ডিসকানেক্ট হয়েছে').then(loadSettings);
+$$('[data-save]').forEach(b => b.onclick = () => run(async () => { await post('/api/settings', SAVE[b.dataset.save]()); await loadSettings(); }, 'সেভ হয়েছে'));
+$('#sTgTest').onclick = () => run(() => post('/api/telegram/test'), 'মেসেজ পাঠানো হয়েছে, Telegram দেখুন');
 $('#pSave').onclick = () => run(async () => {
   await post('/api/password', { old: $('#pOld').value, new: $('#pNew').value });
   $('#pOld').value = $('#pNew').value = '';
 }, 'পাসওয়ার্ড বদলেছে');
+$('#uSave').onclick = () => run(async () => {
+  await post('/api/users/save', { name: $('#uName').value.trim(), password: $('#uPass').value, role: $('#uRole').value });
+  $('#uName').value = $('#uPass').value = '';
+  await loadSettings();
+}, 'ইউজার সেভ হয়েছে');
+$('#uTable').onclick = e => {
+  const ed = e.target.closest('[data-edit]'), del = e.target.closest('[data-del]');
+  if (ed) { $('#uName').value = ed.dataset.edit; $('#uRole').value = ed.dataset.roleV; $('#uPass').focus(); }
+  if (del && confirm(`"${del.dataset.del}" ইউজার মুছবেন?`))
+    run(() => post('/api/users/delete', { name: del.dataset.del }), 'মুছে ফেলা হয়েছে').then(loadSettings);
+};
 
 // ---------- polling
 let busy = false;
 async function tick() {
   if (busy || $('#app').classList.contains('hidden')) return;
   busy = true;
-  try { await Promise.all([loadDownloads().catch(e => { if (tab === 'downloads') $('#dlList').innerHTML = `<div class="empty">⚠ ${esc(e.message)}</div>`; }), loadJobs().catch(() => {})]); }
-  finally { busy = false; }
+  try {
+    await Promise.all([
+      loadDownloads().catch(e => { if (tab === 'downloads') $('#dlList').innerHTML = `<div class="empty">⚠ ${esc(e.message)}</div>`; }),
+      loadJobs().catch(() => {}),
+    ]);
+  } finally { busy = false; }
 }
 async function start() {
   try { await loadInfo(); } catch (e) { return; }
   showApp();
+  updateDlForm();
   let saved = 'downloads';
   try { saved = localStorage.getItem('tab') || saved; } catch (e) {}
   setTab(saved);
