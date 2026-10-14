@@ -18,11 +18,7 @@ Ubuntu সার্ভারে **এক কমান্ডে** aria2 + নি�
 curl -fsSL https://raw.githubusercontent.com/ABNET-RAKIB-123/aria2/main/install.sh | sudo bash
 ```
 
-ডোমেইন + HTTPS সহ:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/ABNET-RAKIB-123/aria2/main/install.sh | sudo DOMAIN=example.com EMAIL=you@example.com bash
-```
+**ডোমেইন লাগবে না।** প্যানেল চলবে সার্ভারের IP দিয়ে: `http://SERVER-IP/`
 
 শেষে স্ক্রিনে প্যানেলের লিংক আর পাসওয়ার্ড দেখাবে (`/root/aria2-web-credentials.txt` ফাইলেও থাকবে)।
 
@@ -30,11 +26,10 @@ curl -fsSL https://raw.githubusercontent.com/ABNET-RAKIB-123/aria2/main/install.
 
 | ভেরিয়েবল | কাজ | ডিফল্ট |
 |---|---|---|
-| `DOMAIN` | ডোমেইন দিলে Let's Encrypt দিয়ে HTTPS চালু হবে | নেই (শুধু IP + HTTP) |
-| `EMAIL` | Let's Encrypt এর জন্য ইমেইল (`DOMAIN` দিলে লাগবেই) | নেই |
 | `DOWNLOAD_DIR` | ফাইল কোন ফোল্ডারে থাকবে | `/srv/downloads` |
 | `PANEL_PASSWORD` | প্যানেলের পাসওয়ার্ড | প্রথমবার নিজে থেকে তৈরি হবে |
 | `REF` | কোন branch থেকে প্যানেলের ফাইল নামাবে | `main` |
+| `DOMAIN`, `EMAIL` | (ঐচ্ছিক, পরে চাইলে) ডোমেইন থাকলে ফ্রি HTTPS চালু হবে | দরকার নেই |
 
 ## Google Drive কানেক্ট
 
