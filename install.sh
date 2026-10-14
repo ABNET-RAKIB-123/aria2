@@ -8,17 +8,32 @@
 #
 # Optional environment variables:
 #   DOMAIN=example.com       enable HTTPS with Let's Encrypt for this domain
+#                            (DOMAIN=none switches back to IP + HTTP)
 #   EMAIL=you@example.com    email for Let's Encrypt (required with DOMAIN)
 #   DOWNLOAD_DIR=/srv/downloads
+#
+# DOMAIN, EMAIL and DOWNLOAD_DIR are remembered in /etc/aria2-install.conf,
+# so re-running the script (e.g. to update) keeps them without retyping.
 #   PANEL_PASSWORD=...       web panel password (auto-generated on first install)
 #   REF=main                 git branch/tag to fetch panel files from when the
 #                            script is run without a local checkout
 #
 set -euo pipefail
 
+# Root-owned on purpose: /etc/aria2 belongs to the aria2 user, and this file
+# feeds values into root-run commands.
+SAVED_CONF="/etc/aria2-install.conf"
+saved() { { [[ -f "$SAVED_CONF" ]] && sed -n "s/^$1=//p" "$SAVED_CONF" | head -n1; } || true; }
+
+DOWNLOAD_DIR="${DOWNLOAD_DIR:-$(saved DOWNLOAD_DIR)}"
 DOWNLOAD_DIR="${DOWNLOAD_DIR:-/srv/downloads}"
-DOMAIN="${DOMAIN:-}"
-EMAIL="${EMAIL:-}"
+if [[ "${DOMAIN:-}" == "none" ]]; then
+  DOMAIN=""
+  EMAIL=""
+else
+  DOMAIN="${DOMAIN:-$(saved DOMAIN)}"
+  EMAIL="${EMAIL:-$(saved EMAIL)}"
+fi
 PANEL_PASSWORD="${PANEL_PASSWORD:-}"
 REF="${REF:-main}"
 REPO_RAW="https://raw.githubusercontent.com/ABNET-RAKIB-123/aria2/${REF}"
@@ -55,7 +70,8 @@ uninstall() {
         /etc/systemd/system/aria2-trackers.timer \
         /usr/local/bin/aria2-update-trackers \
         /etc/nginx/sites-enabled/aria2 \
-        /etc/nginx/sites-available/aria2
+        /etc/nginx/sites-available/aria2 \
+        "$SAVED_CONF"
   rm -rf "$PANEL_DIR" "$CONF_DIR"
   systemctl daemon-reload
   if [[ ! -e /etc/nginx/sites-enabled/default && -e /etc/nginx/sites-available/default ]]; then
@@ -70,6 +86,12 @@ uninstall() {
 
 if [[ -n "$DOMAIN" && -z "$EMAIL" ]]; then
   red "EMAIL is required when DOMAIN is set."; exit 1
+fi
+if [[ -n "$DOMAIN" && ! "$DOMAIN" =~ ^[A-Za-z0-9.-]+$ ]]; then
+  red "Invalid DOMAIN: ${DOMAIN}"; exit 1
+fi
+if [[ ! "$DOWNLOAD_DIR" =~ ^/[A-Za-z0-9._/-]+$ ]]; then
+  red "DOWNLOAD_DIR must be an absolute path without spaces: ${DOWNLOAD_DIR}"; exit 1
 fi
 
 step "Installing packages"
@@ -299,7 +321,7 @@ SCHEME="http"
 if [[ -n "$DOMAIN" ]]; then
   step "Getting HTTPS certificate for ${DOMAIN}"
   apt-get install -y certbot python3-certbot-nginx
-  if certbot --nginx --non-interactive --agree-tos --redirect -m "$EMAIL" -d "$DOMAIN"; then
+  if certbot --nginx --non-interactive --agree-tos --redirect --keep-until-expiring -m "$EMAIL" -d "$DOMAIN"; then
     SCHEME="https"
   else
     yellow "certbot failed. Make sure ${DOMAIN} points to this server. Continuing with HTTP."
@@ -319,6 +341,9 @@ if command -v ufw >/dev/null; then
     yellow "ufw is installed but inactive. Rules were added; enable it yourself with: sudo ufw enable"
   fi
 fi
+
+printf 'DOWNLOAD_DIR=%s\nDOMAIN=%s\nEMAIL=%s\n' "$DOWNLOAD_DIR" "$DOMAIN" "$EMAIL" > "$SAVED_CONF"
+chmod 600 "$SAVED_CONF"
 
 HOST="${DOMAIN:-$(curl -fsS --max-time 5 https://api.ipify.org 2>/dev/null || hostname -I | awk '{print $1}')}"
 
