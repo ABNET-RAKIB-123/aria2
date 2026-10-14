@@ -342,25 +342,74 @@ Download folder: /srv/downloads</pre></div>
 
 <section id="https">
   <h2>🔒 HTTPS (ঐচ্ছিক, এখন বাদ দিতে পারেন)</h2>
-  <p>ডোমেইন ছাড়া প্যানেল <code>http://SERVER-IP/</code> ঠিকানায় চলে, সব ফিচার কাজ করে। শুধু পাসওয়ার্ড এনক্রিপ্ট হয় না, তাই পাবলিক WiFi থেকে লগইন না করাই ভালো। পরে HTTPS চাইলে নিচের যেকোনো একটা উপায়:</p>
-  <h3>উপায় ১: ফ্রি নাম (sslip.io), ডোমেইন কেনা লাগবে না</h3>
-  <p>সার্ভারের IP-র ডট (.) বদলে ড্যাশ (-) দিয়ে নাম হবে, যেমন IP <code>203.0.113.10</code> হলে <code>203-0-113-10.sslip.io</code>:</p>
-  <div class="code"><pre>curl -fsSL https://raw.githubusercontent.com/ABNET-RAKIB-123/aria2/main/install.sh | sudo DOMAIN=203-0-113-10.sslip.io EMAIL=you@gmail.com bash</pre></div>
-  <h3>উপায় ২: নিজের ডোমেইন থাকলে</h3>
-  <ol>
-    <li>ডোমেইনের DNS প্যানেলে একটা <b>A record</b> বানান: নাম <code>@</code> বা <code>dl</code>, মান আপনার সার্ভারের IP।</li>
-    <li>কয়েক মিনিট অপেক্ষা করুন, তারপর চালান:</li>
-  </ol>
-  <div class="code"><pre>curl -fsSL https://raw.githubusercontent.com/ABNET-RAKIB-123/aria2/main/install.sh | sudo DOMAIN=dl.example.com EMAIL=you@gmail.com bash</pre></div>
-  <p>এরপর প্যানেল খুলবে <code>https://dl.example.com/</code> ঠিকানায়। সার্টিফিকেট ফ্রি, আর নিজে থেকেই রিনিউ হয়।</p>
-  <div class="note info"><b>ℹ️ আগে থেকে ইনস্টল করা থাকলে</b>একই কমান্ড আবার চালালেই হবে। ফাইল, পাসওয়ার্ড আর Drive কানেকশন থেকে যাবে।</div>
+  <p>ডোমেইন ছাড়া প্যানেল <code>http://SERVER-IP/</code> ঠিকানায় চলে, সব ফিচার কাজ করে। পরে ডোমেইন নিলে নিচের ধাপগুলো করলেই HTTPS চালু হবে।</p>
+
+  <h3>HTTPS কেন?</h3>
   <ul>
-    <li>ডোমেইনটা মনে থাকে। পরে আপডেটের সময় শুধু সাধারণ ইনস্টল কমান্ড চালালেই HTTPS থেকে যাবে।</li>
-    <li>HTTPS চালু হওয়ার পর <code>http://SERVER-IP/</code> দিয়ে আর ঢোকা যাবে না, শুধু ডোমেইন দিয়ে খুলবে।</li>
-    <li>আবার IP-তে ফিরে যেতে চাইলে: <code>... | sudo DOMAIN=none bash</code></li>
-    <li>Cloudflare ব্যবহার করলে প্রথমে DNS record <b>DNS only</b> (ধূসর মেঘ) রাখুন।</li>
-    <li>DNS record, Cloudflare, সমস্যা সমাধানসহ পুরো নিয়ম README-র <b>"HTTPS (ঐচ্ছিক)"</b> অংশে আছে।</li>
+    <li>লগইনের পাসওয়ার্ড আর ফাইল এনক্রিপ্ট হয়ে যায়। পাবলিক WiFi থেকেও নিরাপদ থাকে।</li>
+    <li>ব্রাউজারে "Not secure" লেখা চলে যায়।</li>
+    <li>IP-র বদলে মনে রাখার মতো ঠিকানা পান, যেমন <code>https://dl.example.com</code>।</li>
   </ul>
+
+  <h3>যা লাগবে</h3>
+  <div class="table-wrap"><table>
+    <tr><th>জিনিস</th><th>কোথায় পাবেন</th><th>খরচ</th></tr>
+    <tr><td>একটা ডোমেইন</td><td>Namecheap, Porkbun, Cloudflare, GoDaddy, বা বাংলাদেশি রেজিস্ট্রার</td><td>বছরে প্রায় ১০০০ থেকে ১৫০০ টাকা (<code>.com</code>)</td></tr>
+    <tr><td>একটা ইমেইল</td><td>আপনার Gmail-ই চলবে</td><td>ফ্রি</td></tr>
+    <tr><td>SSL সার্টিফিকেট</td><td>Let's Encrypt, script নিজেই নিয়ে নেয়</td><td>ফ্রি</td></tr>
+  </table></div>
+  <div class="note info"><b>ℹ️ ডোমেইন কিনতে না চাইলে</b>sslip.io দিয়ে ফ্রিতে HTTPS করা যায়। নিচে <b>উপায় ২</b> দেখুন।</div>
+
+  <h3>উপায় ১: নিজের ডোমেইন দিয়ে</h3>
+  <div class="flow"><span>A record দিন</span><i>→</i><span>DNS চেক</span><i>→</i><span>পোর্ট 80/443 খুলুন</span><i>→</i><span>একটা কমান্ড</span><i>→</i><span>🔒 https://</span></div>
+  <p><b>ধাপ ১: DNS-এ A record যোগ করুন।</b> ডোমেইন যেখান থেকে কিনেছেন, সেখানকার DNS সেটিংয়ে:</p>
+  <div class="table-wrap"><table>
+    <tr><th>Type</th><th>Name / Host</th><th>Value / Points to</th><th>TTL</th></tr>
+    <tr><td><code>A</code></td><td><code>dl</code> (ঠিকানা হবে <code>dl.example.com</code>), অথবা <code>@</code> (শুধু <code>example.com</code>)</td><td>আপনার সার্ভারের IP</td><td>Auto</td></tr>
+  </table></div>
+  <p><b>ধাপ ২: DNS কাজ করছে কিনা দেখুন।</b> ৫ মিনিট থেকে কয়েক ঘণ্টা লাগতে পারে:</p>
+  <div class="code"><pre>ping dl.example.com</pre></div>
+  <p>উত্তরে আপনার সার্ভারের IP দেখালে পরের ধাপে যান।</p>
+  <p><b>ধাপ ৩: পোর্ট খুলুন।</b> AWS, Oracle বা Google Cloud হলে ওদের প্যানেলে <b>80</b> আর <b>443</b> TCP খোলা আছে কিনা দেখুন। Let's Encrypt পোর্ট 80 দিয়ে যাচাই করে।</p>
+  <p><b>ধাপ ৪: এই একটা কমান্ড চালান</b> (<code>dl.example.com</code> আর ইমেইল বদলে নিজেরগুলো দিন):</p>
+  <div class="code"><pre>curl -fsSL https://raw.githubusercontent.com/ABNET-RAKIB-123/aria2/main/install.sh | sudo DOMAIN=dl.example.com EMAIL=you@gmail.com bash</pre></div>
+  <p>script নিজে থেকে ফ্রি সার্টিফিকেট নেয়, HTTPS চালু করে, <code>http://</code> দিয়ে কেউ ঢুকলে <code>https://</code>-এ পাঠিয়ে দেয়, আর ডোমেইনটা মনে রাখে।</p>
+  <p><b>ধাপ ৫:</b> খুলুন <code>https://dl.example.com/</code>। পাসওয়ার্ড, ফাইল আর Drive কানেকশন আগের মতোই থাকবে।</p>
+  <div class="note warn"><b>⚠️ মনে রাখবেন</b>HTTPS চালু হওয়ার পর <code>http://SERVER-IP/</code> দিয়ে আর ঢোকা যাবে না, শুধু ডোমেইন দিয়ে খুলবে।</div>
+
+  <h3>উপায় ২: ডোমেইন না কিনে, ফ্রি (sslip.io)</h3>
+  <p>DNS-এ কিছু করতে হয় না। IP-র ডট (<code>.</code>) বদলে ড্যাশ (<code>-</code>) দিন। যেমন IP <code>203.0.113.10</code> হলে:</p>
+  <div class="code"><pre>curl -fsSL https://raw.githubusercontent.com/ABNET-RAKIB-123/aria2/main/install.sh | sudo DOMAIN=203-0-113-10.sslip.io EMAIL=you@gmail.com bash</pre></div>
+  <p>প্যানেল খুলবে <code>https://203-0-113-10.sslip.io/</code> ঠিকানায়। ঠিকানাটা মনে রাখা একটু কঠিন, কিন্তু পুরোপুরি ফ্রি। কখনো সার্টিফিকেট পেতে দেরি হলে কিছুক্ষণ পরে আবার চালান।</p>
+
+  <h3>Cloudflare ব্যবহার করলে</h3>
+  <ul>
+    <li>DNS record-এর <b>Proxy status</b> প্রথমে <b>DNS only</b> (ধূসর মেঘ) রাখুন, তারপর script চালান।</li>
+    <li>সার্টিফিকেট পাওয়ার পর চাইলে <b>Proxied</b> (কমলা মেঘ) করতে পারেন। তখন Cloudflare-এর <b>SSL/TLS → Overview</b> থেকে <b>Full (strict)</b> করে দিন।</li>
+    <li>⚠️ Proxied অবস্থায় Cloudflare ফ্রি প্ল্যানে একবারে প্রায় ১০০ MB-র বেশি আপলোড করতে দেয় না। বড় ফাইল আপলোড করলে <b>DNS only</b> রাখাই ভালো।</li>
+  </ul>
+
+  <h3>পরে যা যা করা যায়</h3>
+  <div class="table-wrap"><table>
+    <tr><th>কী করতে চান</th><th>কমান্ড</th></tr>
+    <tr><td>আপডেট (ডোমেইন মনে থাকবে)</td><td><code>curl -fsSL https://raw.githubusercontent.com/ABNET-RAKIB-123/aria2/main/install.sh | sudo bash</code></td></tr>
+    <tr><td>ডোমেইন বদলানো</td><td><code>... | sudo DOMAIN=new.example.com EMAIL=you@gmail.com bash</code></td></tr>
+    <tr><td>HTTPS বন্ধ করে আবার IP-তে ফেরা</td><td><code>... | sudo DOMAIN=none bash</code></td></tr>
+    <tr><td>সার্টিফিকেটের অবস্থা দেখা</td><td><code>sudo certbot certificates</code></td></tr>
+    <tr><td>রিনিউ ঠিকমতো হবে কিনা পরীক্ষা</td><td><code>sudo certbot renew --dry-run</code></td></tr>
+  </table></div>
+  <p>সার্টিফিকেট ৯০ দিনের হয়, কিন্তু certbot নিজে থেকেই রিনিউ করে। আপনাকে কিছু করতে হবে না।</p>
+
+  <details><summary>"certbot failed" দেখালে কী করব?</summary>
+    <p>প্যানেল HTTP-তেই চলতে থাকবে, কিছু নষ্ট হবে না। এগুলো দেখে একই কমান্ড আবার চালান:</p>
+    <ol>
+      <li><b>DNS এখনো ছড়ায়নি:</b> <code>ping dl.example.com</code> চালিয়ে দেখুন আপনার সার্ভারের IP দেখায় কিনা।</li>
+      <li><b>পোর্ট 80 বন্ধ:</b> ক্লাউড প্যানেলের ফায়ারওয়াল দেখুন। Oracle হলে iptables-ও (<a href="#trouble">সমস্যা সমাধান</a> দেখুন)।</li>
+      <li><b>Cloudflare Proxied চালু:</b> <b>DNS only</b> করে আবার চালান।</li>
+      <li><b>অনেকবার চেষ্টা করেছেন:</b> Let's Encrypt ঘণ্টায় ৫ বারের বেশি ব্যর্থ চেষ্টা করতে দেয় না। এক ঘণ্টা অপেক্ষা করুন।</li>
+    </ol>
+    <p>বিস্তারিত এরর: <code>sudo tail -n 50 /var/log/letsencrypt/letsencrypt.log</code></p>
+  </details>
 </section>
 
 <section id="manage">
