@@ -458,6 +458,21 @@ $('#dlList').onclick = e => {
   run(acts[a]).then(tick);
 };
 
+// navigator.clipboard only exists on HTTPS; plain-HTTP installs (no domain) need the textarea fallback.
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) {}
+  ta.remove();
+  return ok;
+}
+
 // ---------- server files
 let fPath = '';
 function crumbs(el, path, onGo, rootLabel) {
@@ -496,8 +511,8 @@ $('#fList').onclick = e => {
     share: () => run(async () => {
       const d = await post('/api/share', { path: p });
       const url = location.origin + d.url;
-      try { await navigator.clipboard.writeText(url); toast(`Direct link কপি হয়েছে (${d.days} দিন চলবে)`); }
-      catch (err) { prompt(`Direct link (${d.days} দিন চলবে):`, url); }
+      if (await copyText(url)) toast(`Direct link কপি হয়েছে (${d.days} দিন চলবে)`);
+      else prompt(`Direct link (${d.days} দিন চলবে):`, url);
     }),
     todrive: () => {
       if (!info.drive) return toast('আগে Google Drive কানেক্ট করুন', true);
