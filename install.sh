@@ -1,31 +1,33 @@
 #!/usr/bin/env bash
 #
-# aria2 + AriaNg + File Browser one-shot installer for Ubuntu/Debian.
+# aria2 + web panel (downloads, server files, Google Drive) one-shot
+# installer for Ubuntu/Debian.
 #
 #   Install:    sudo bash install.sh
 #   Uninstall:  sudo bash install.sh --uninstall
 #
 # Optional environment variables:
-#   DOMAIN=example.com     enable HTTPS with Let's Encrypt for this domain
-#   EMAIL=you@example.com  email for Let's Encrypt (required with DOMAIN)
+#   DOMAIN=example.com       enable HTTPS with Let's Encrypt for this domain
+#   EMAIL=you@example.com    email for Let's Encrypt (required with DOMAIN)
 #   DOWNLOAD_DIR=/srv/downloads
-#   RPC_SECRET=...         aria2 RPC token (auto-generated if empty)
-#   FB_PASSWORD=...        File Browser admin password (auto-generated if empty)
+#   PANEL_PASSWORD=...       web panel password (auto-generated on first install)
+#   REF=main                 git branch/tag to fetch panel files from when the
+#                            script is run without a local checkout
 #
 set -euo pipefail
 
 DOWNLOAD_DIR="${DOWNLOAD_DIR:-/srv/downloads}"
 DOMAIN="${DOMAIN:-}"
 EMAIL="${EMAIL:-}"
-RPC_SECRET="${RPC_SECRET:-}"
-FB_PASSWORD="${FB_PASSWORD:-}"
+PANEL_PASSWORD="${PANEL_PASSWORD:-}"
+REF="${REF:-main}"
+REPO_RAW="https://raw.githubusercontent.com/ABNET-RAKIB-123/aria2/${REF}"
 
 ARIA2_USER="aria2"
 CONF_DIR="/etc/aria2"
-WEB_DIR="/var/www/ariang"
-FB_DB="${CONF_DIR}/filebrowser.db"
+PANEL_DIR="/opt/aria2-panel"
+PANEL_CONF="${CONF_DIR}/panel.json"
 CRED_FILE="/root/aria2-web-credentials.txt"
-ARIANG_FALLBACK_VERSION="1.3.7"
 TRACKER_URL="https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_best.txt"
 
 green()  { printf '\033[1;32m%s\033[0m\n' "$*"; }
@@ -36,18 +38,25 @@ step()   { echo; green "==> $*"; }
 [[ $EUID -eq 0 ]] || { red "Run as root: sudo bash $0"; exit 1; }
 command -v apt-get >/dev/null || { red "This script supports Ubuntu/Debian only."; exit 1; }
 
+# Leftovers from the earlier AriaNg + File Browser version of this script.
+remove_legacy() {
+  systemctl disable --now filebrowser 2>/dev/null || true
+  rm -f /etc/systemd/system/filebrowser.service /usr/local/bin/filebrowser "${CONF_DIR}/filebrowser.db"
+  rm -rf /var/www/ariang
+}
+
 uninstall() {
   step "Removing aria2 web setup"
-  systemctl disable --now aria2 filebrowser aria2-trackers.timer 2>/dev/null || true
+  systemctl disable --now aria2 aria2-panel aria2-trackers.timer 2>/dev/null || true
+  remove_legacy
   rm -f /etc/systemd/system/aria2.service \
-        /etc/systemd/system/filebrowser.service \
+        /etc/systemd/system/aria2-panel.service \
         /etc/systemd/system/aria2-trackers.service \
         /etc/systemd/system/aria2-trackers.timer \
         /usr/local/bin/aria2-update-trackers \
-        /usr/local/bin/filebrowser \
         /etc/nginx/sites-enabled/aria2 \
         /etc/nginx/sites-available/aria2
-  rm -rf "$WEB_DIR" "$CONF_DIR"
+  rm -rf "$PANEL_DIR" "$CONF_DIR"
   systemctl daemon-reload
   if [[ ! -e /etc/nginx/sites-enabled/default && -e /etc/nginx/sites-available/default ]]; then
     ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
@@ -63,31 +72,28 @@ if [[ -n "$DOMAIN" && -z "$EMAIL" ]]; then
   red "EMAIL is required when DOMAIN is set."; exit 1
 fi
 
-# AriaNg takes the token base64-encoded inside a URL path, so make sure the
-# encoded form has no '/', '+' or '=' characters.
-gen_rpc_secret() {
-  local s
-  while :; do
-    s="$(openssl rand -hex 12)"
-    [[ "$(printf '%s' "$s" | base64)" =~ ^[A-Za-z0-9]+$ ]] && { echo "$s"; return; }
-  done
-}
-
 step "Installing packages"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
-apt-get install -y aria2 nginx unzip curl openssl ca-certificates
+apt-get install -y aria2 nginx python3 unzip curl openssl ca-certificates
+
+if ! command -v rclone >/dev/null; then
+  step "Installing rclone (Google Drive)"
+  curl -fsSL https://rclone.org/install.sh | bash
+fi
 
 step "Creating user and directories"
 id "$ARIA2_USER" &>/dev/null || useradd -r -m -d /var/lib/aria2 -s /usr/sbin/nologin "$ARIA2_USER"
-mkdir -p "$CONF_DIR" "$DOWNLOAD_DIR" "$WEB_DIR"
-touch "${CONF_DIR}/aria2.session"
+mkdir -p "$CONF_DIR" "$DOWNLOAD_DIR" "$PANEL_DIR"
+touch "${CONF_DIR}/aria2.session" "${CONF_DIR}/rclone.conf"
+remove_legacy
 
-# Keep the existing token on re-runs so saved AriaNg settings keep working.
-if [[ -z "$RPC_SECRET" && -f "${CONF_DIR}/aria2.conf" ]]; then
+# Keep the existing token on re-runs.
+RPC_SECRET=""
+if [[ -f "${CONF_DIR}/aria2.conf" ]]; then
   RPC_SECRET="$(sed -n 's/^rpc-secret=//p' "${CONF_DIR}/aria2.conf")"
 fi
-[[ -n "$RPC_SECRET" ]] || RPC_SECRET="$(gen_rpc_secret)"
+[[ -n "$RPC_SECRET" ]] || RPC_SECRET="$(openssl rand -hex 16)"
 
 step "Writing aria2 config"
 cat > "${CONF_DIR}/aria2.conf" <<EOF
@@ -106,11 +112,10 @@ min-split-size=1M
 max-overall-download-limit=0
 max-overall-upload-limit=0
 
-## RPC (only reachable through nginx)
+## RPC (only used by the panel on localhost)
 enable-rpc=true
 rpc-listen-all=false
 rpc-listen-port=6800
-rpc-allow-origin-all=true
 rpc-secret=${RPC_SECRET}
 rpc-max-request-size=16M
 
@@ -173,7 +178,6 @@ EOF
 
 /usr/local/bin/aria2-update-trackers || yellow "Tracker list download failed, skipping."
 
-step "Creating aria2 service"
 cat > /etc/systemd/system/aria2.service <<EOF
 [Unit]
 Description=aria2 Download Manager
@@ -192,91 +196,92 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 
-step "Installing AriaNg web UI"
-ARIANG_VERSION="$(curl -fsSL --max-time 20 https://api.github.com/repos/mayswind/AriaNg/releases/latest \
-  | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' | head -n1 || true)"
-ARIANG_VERSION="${ARIANG_VERSION:-$ARIANG_FALLBACK_VERSION}"
-tmp="$(mktemp -d)"
-curl -fsSL -o "${tmp}/ariang.zip" \
-  "https://github.com/mayswind/AriaNg/releases/download/${ARIANG_VERSION}/AriaNg-${ARIANG_VERSION}.zip"
-rm -rf "${WEB_DIR:?}"/*
-unzip -q "${tmp}/ariang.zip" -d "$WEB_DIR"
-rm -rf "$tmp"
-green "AriaNg ${ARIANG_VERSION} installed."
+step "Installing web panel"
+SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || true)"
+for f in server.py index.html; do
+  if [[ -n "$SRC_DIR" && -f "${SRC_DIR}/panel/${f}" ]]; then
+    cp "${SRC_DIR}/panel/${f}" "${PANEL_DIR}/${f}"
+  else
+    curl -fsSL -o "${PANEL_DIR}/${f}" "${REPO_RAW}/panel/${f}"
+  fi
+done
 
-step "Installing File Browser (upload / download files)"
-if ! command -v filebrowser >/dev/null; then
-  curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
-fi
-FB_BIN="$(command -v filebrowser)"
+# Write panel.json, keeping the password and session key from earlier runs
+# unless PANEL_PASSWORD is given. Prints the new password when one is set.
+NEW_PASSWORD="$(PANEL_CONF="$PANEL_CONF" PANEL_PASSWORD="$PANEL_PASSWORD" DOWNLOAD_DIR="$DOWNLOAD_DIR" \
+  RPC_SECRET="$RPC_SECRET" CONF_DIR="$CONF_DIR" python3 - <<'PY'
+import hashlib, json, os, secrets
+path = os.environ["PANEL_CONF"]
+try:
+    with open(path) as f:
+        cfg = json.load(f)
+except (OSError, ValueError):
+    cfg = {}
+password = os.environ.get("PANEL_PASSWORD", "")
+if not password and "password_hash" not in cfg:
+    password = secrets.token_urlsafe(12)
+if password:
+    cfg["password_salt"] = secrets.token_hex(16)
+    cfg["password_hash"] = hashlib.pbkdf2_hmac(
+        "sha256", password.encode(), cfg["password_salt"].encode(), 200000).hex()
+cfg.setdefault("session_key", secrets.token_hex(32))
+cfg.update(
+    download_dir=os.environ["DOWNLOAD_DIR"],
+    rpc_secret=os.environ["RPC_SECRET"],
+    rclone_config=os.path.join(os.environ["CONF_DIR"], "rclone.conf"),
+    state_file=os.path.join(os.environ["CONF_DIR"], "panel-state.json"),
+    remote=cfg.get("remote", "gdrive"),
+    listen="127.0.0.1",
+    port=8090,
+)
+with open(path, "w") as f:
+    json.dump(cfg, f, indent=2)
+print(password)
+PY
+)"
 
-FB_NEW=0
-if [[ ! -f "$FB_DB" ]]; then
-  FB_NEW=1
-  [[ -n "$FB_PASSWORD" ]] || FB_PASSWORD="$(openssl rand -base64 18 | tr -dc 'A-Za-z0-9' | head -c 16)"
-  "$FB_BIN" -d "$FB_DB" config init >/dev/null
-  "$FB_BIN" -d "$FB_DB" config set \
-    --address 127.0.0.1 --port 8080 --root "$DOWNLOAD_DIR" --baseurl /files >/dev/null
-  "$FB_BIN" -d "$FB_DB" users add admin "$FB_PASSWORD" --perm.admin >/dev/null
-elif [[ -n "$FB_PASSWORD" ]]; then
-  "$FB_BIN" -d "$FB_DB" users update admin --password "$FB_PASSWORD" >/dev/null
-fi
-
-cat > /etc/systemd/system/filebrowser.service <<EOF
+cat > /etc/systemd/system/aria2-panel.service <<EOF
 [Unit]
-Description=File Browser
-After=network.target
+Description=aria2 web panel
+After=network.target aria2.service
 
 [Service]
 User=${ARIA2_USER}
 Group=${ARIA2_USER}
 UMask=0002
-ExecStart=${FB_BIN} -d ${FB_DB}
+Environment=PANEL_CONFIG=${PANEL_CONF}
+Environment=HOME=/var/lib/aria2
+ExecStart=/usr/bin/python3 ${PANEL_DIR}/server.py
 Restart=on-failure
-RestartSec=5
+RestartSec=3
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
 chown -R "$ARIA2_USER:$ARIA2_USER" "$CONF_DIR" "$DOWNLOAD_DIR"
-chmod 600 "${CONF_DIR}/aria2.conf"
+chmod 600 "${CONF_DIR}/aria2.conf" "$PANEL_CONF" "${CONF_DIR}/rclone.conf"
+chmod 644 "${PANEL_DIR}"/*
 
 step "Configuring nginx"
-SERVER_NAME="${DOMAIN:-_}"
 cat > /etc/nginx/sites-available/aria2 <<EOF
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
-    server_name ${SERVER_NAME};
+    server_name ${DOMAIN:-_};
 
     client_max_body_size 0;
-    proxy_request_buffering off;
 
     location / {
-        root ${WEB_DIR};
-        index index.html;
-    }
-
-    location /jsonrpc {
-        proxy_pass http://127.0.0.1:6800/jsonrpc;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host \$host;
-        proxy_read_timeout 1d;
-    }
-
-    location /files {
-        proxy_pass http://127.0.0.1:8080;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection "upgrade";
+        proxy_pass http://127.0.0.1:8090;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_request_buffering off;
+        proxy_buffering off;
         proxy_read_timeout 1d;
+        proxy_send_timeout 1d;
     }
 }
 EOF
@@ -286,17 +291,16 @@ nginx -t
 
 step "Starting services"
 systemctl daemon-reload
-systemctl enable --now aria2 filebrowser aria2-trackers.timer
-systemctl restart aria2 filebrowser
+systemctl enable --now aria2 aria2-panel aria2-trackers.timer
+systemctl restart aria2 aria2-panel
 systemctl reload nginx
 
 SCHEME="http"
-PORT=80
 if [[ -n "$DOMAIN" ]]; then
   step "Getting HTTPS certificate for ${DOMAIN}"
   apt-get install -y certbot python3-certbot-nginx
   if certbot --nginx --non-interactive --agree-tos --redirect -m "$EMAIL" -d "$DOMAIN"; then
-    SCHEME="https"; PORT=443
+    SCHEME="https"
   else
     yellow "certbot failed. Make sure ${DOMAIN} points to this server. Continuing with HTTP."
   fi
@@ -317,27 +321,15 @@ if command -v ufw >/dev/null; then
 fi
 
 HOST="${DOMAIN:-$(curl -fsS --max-time 5 https://api.ipify.org 2>/dev/null || hostname -I | awk '{print $1}')}"
-WS="ws"; [[ "$SCHEME" == "https" ]] && WS="wss"
-SECRET_B64="$(printf '%s' "$RPC_SECRET" | base64)"
-ARIANG_URL="${SCHEME}://${HOST}/#!/settings/rpc/set/${WS}/${HOST}/${PORT}/jsonrpc/${SECRET_B64}"
-FB_URL="${SCHEME}://${HOST}/files"
 
 {
-  echo "aria2 web setup - $(date)"
+  echo "aria2 web panel - $(date)"
   echo
-  echo "AriaNg (auto-configured link): ${ARIANG_URL}"
-  echo "AriaNg plain URL:              ${SCHEME}://${HOST}/"
-  echo "  RPC host:  ${HOST}"
-  echo "  RPC port:  ${PORT}"
-  echo "  RPC path:  /jsonrpc"
-  echo "  RPC token: ${RPC_SECRET}"
-  echo
-  echo "File Browser: ${FB_URL}"
-  echo "  user: admin"
-  if [[ $FB_NEW -eq 1 || -n "$FB_PASSWORD" ]]; then
-    echo "  pass: ${FB_PASSWORD}"
+  echo "Panel URL: ${SCHEME}://${HOST}/"
+  if [[ -n "$NEW_PASSWORD" ]]; then
+    echo "Password:  ${NEW_PASSWORD}"
   else
-    echo "  pass: (unchanged from previous install)"
+    echo "Password:  (unchanged from previous install)"
   fi
   echo
   echo "Download folder: ${DOWNLOAD_DIR}"
@@ -350,5 +342,5 @@ green "  Setup complete!"
 green "=============================================="
 cat "$CRED_FILE"
 echo
-yellow "These details are saved in ${CRED_FILE}"
-yellow "Open the AriaNg auto-configured link once; it saves the RPC settings in your browser."
+yellow "Saved in ${CRED_FILE}. Change the password from the panel's Settings tab."
+yellow "Connect Google Drive from the panel's 'Google Drive' tab."

@@ -1,21 +1,28 @@
 # aria2
 Download Or Upload
 
-Ubuntu সার্ভারে **এক কমান্ডে** aria2 + AriaNg (ডাউনলোড প্যানেল) + File Browser (আপলোড/ডাউনলোড প্যানেল) সেটআপ।
+Ubuntu সার্ভারে **এক কমান্ডে** aria2 + নিজস্ব ওয়েব প্যানেল সেটআপ। প্যানেল থেকে সব কাজ:
+
+- **ডাউনলোড**: Direct link, Magnet, Torrent, Google Drive শেয়ার লিংক → সার্ভারে
+- **সরাসরি Drive-এ**: Direct link → সার্ভারে না রেখেই Google Drive-এ
+- **সার্ভারের ফাইল**: পিসি থেকে আপলোড (drag & drop), পিসিতে নামানো, ব্রাউজারে ভিডিও/ছবি দেখা, rename, delete, ৭ দিনের Direct link শেয়ার
+- **Google Drive**: ব্রাউজার থেকে কানেক্ট, ফাইল দেখা, পিসি → Drive আপলোড, Drive → পিসি ডাউনলোড, সার্ভার ⇄ Drive ট্রান্সফার
+- **অটো আপলোড**: সার্ভারে ডাউনলোড শেষ হলেই Drive-এ পাঠানো (চাইলে সার্ভার থেকে মুছে দেওয়া)
+- পাসওয়ার্ড দিয়ে লগইন, মোবাইলে চলে, Dark mode
 
 ## ইনস্টল
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/abnet-rakib-123/aria2/main/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/ABNET-RAKIB-123/aria2/main/install.sh | sudo bash
 ```
 
 ডোমেইন + HTTPS সহ:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/abnet-rakib-123/aria2/main/install.sh | sudo DOMAIN=example.com EMAIL=you@example.com bash
+curl -fsSL https://raw.githubusercontent.com/ABNET-RAKIB-123/aria2/main/install.sh | sudo DOMAIN=example.com EMAIL=you@example.com bash
 ```
 
-শেষে স্ক্রিনে লিংক, টোকেন আর পাসওয়ার্ড দেখাবে। এগুলো `/root/aria2-web-credentials.txt` ফাইলেও সেভ থাকবে।
+শেষে স্ক্রিনে প্যানেলের লিংক আর পাসওয়ার্ড দেখাবে (`/root/aria2-web-credentials.txt` ফাইলেও থাকবে)।
 
 ## অপশন (environment variable)
 
@@ -24,13 +31,13 @@ curl -fsSL https://raw.githubusercontent.com/abnet-rakib-123/aria2/main/install.
 | `DOMAIN` | ডোমেইন দিলে Let's Encrypt দিয়ে HTTPS চালু হবে | নেই (শুধু IP + HTTP) |
 | `EMAIL` | Let's Encrypt এর জন্য ইমেইল (`DOMAIN` দিলে লাগবেই) | নেই |
 | `DOWNLOAD_DIR` | ফাইল কোন ফোল্ডারে থাকবে | `/srv/downloads` |
-| `RPC_SECRET` | aria2 টোকেন | নিজে থেকে তৈরি হবে |
-| `FB_PASSWORD` | File Browser এর admin পাসওয়ার্ড | নিজে থেকে তৈরি হবে |
+| `PANEL_PASSWORD` | প্যানেলের পাসওয়ার্ড | প্রথমবার নিজে থেকে তৈরি হবে |
+| `REF` | কোন branch থেকে প্যানেলের ফাইল নামাবে | `main` |
 
-## ব্যবহার
+## Google Drive কানেক্ট
 
-- `http://SERVER-IP/` → AriaNg: লিংক, টরেন্ট বা ম্যাগনেট দিয়ে ডাউনলোড
-- `http://SERVER-IP/files` → File Browser: আপলোড, পিসিতে নামানো, rename, delete, শেয়ার লিংক
+প্যানেলের **Google Drive** ট্যাবে যান → **Google লগইন লিংক তৈরি করো** → Google-এ Allow দিন →
+যে পেজটা খুলবে না (127.0.0.1...) তার address bar-এর পুরো লিংক কপি করে প্যানেলে পেস্ট করুন → **কানেক্ট**।
 
 ## আনইনস্টল
 
@@ -39,3 +46,9 @@ sudo bash install.sh --uninstall
 ```
 
 (ডাউনলোড করা ফাইলগুলো মুছবে না।)
+
+## ফাইলগুলো
+
+- `install.sh`: পুরো সেটআপ স্ক্রিপ্ট
+- `panel/server.py`: প্যানেলের ব্যাকএন্ড (শুধু Python, বাড়তি কিছু লাগে না)
+- `panel/index.html`: প্যানেলের ওয়েব পেজ

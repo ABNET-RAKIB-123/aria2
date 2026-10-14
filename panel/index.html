@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Download Panel</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%232563eb' d='M12 3v10.6l3.3-3.3 1.4 1.4L12 16.4l-4.7-4.7 1.4-1.4 3.3 3.3V3zM5 19h14v2H5z'/></svg>">
+<style>
+:root {
+  --bg: #f4f6fa; --card: #ffffff; --text: #111827; --muted: #6b7280; --line: #e5e7eb;
+  --accent: #2563eb; --accent-soft: #dbeafe; --ok: #16a34a; --warn: #d97706; --bad: #dc2626;
+  --bar: #e5e7eb; --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1115; --card: #181b22; --text: #e5e7eb; --muted: #9ca3af; --line: #2a2f3a;
+    --accent: #60a5fa; --accent-soft: #1e2a44; --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+    --bar: #2a2f3a; --shadow: none;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", "Noto Sans Bengali", sans-serif; }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: var(--accent); }
+.hidden { display: none !important; }
+
+header { background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+.top { max-width: 1100px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.brand { font-weight: 700; font-size: 17px; display: flex; align-items: center; gap: 8px; }
+.stats { margin-left: auto; display: flex; gap: 14px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+.stats b { color: var(--text); font-weight: 600; }
+nav { max-width: 1100px; margin: 0 auto; padding: 0 8px; display: flex; gap: 2px; overflow-x: auto; }
+nav button { background: none; border: 0; padding: 10px 12px; cursor: pointer; color: var(--muted);
+  border-bottom: 2px solid transparent; white-space: nowrap; }
+nav button.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+.badge { background: var(--accent); color: #fff; border-radius: 99px; font-size: 11px; padding: 0 6px; margin-left: 4px; }
+
+main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow); }
+.card h2 { margin: 0 0 12px; font-size: 16px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.grow { flex: 1; min-width: 160px; }
+label.small { font-size: 13px; color: var(--muted); display: block; margin-bottom: 4px; }
+input[type=text], input[type=password], input[type=url], select, textarea {
+  width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+textarea { min-height: 90px; resize: vertical; font-family: ui-monospace, monospace; font-size: 13px; }
+.btn { border: 1px solid var(--line); background: var(--card); border-radius: 8px; padding: 7px 12px; cursor: pointer; white-space: nowrap; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.danger { color: var(--bad); }
+.btn.sm { padding: 3px 8px; font-size: 13px; }
+.btn:disabled { opacity: .5; cursor: default; }
+.muted { color: var(--muted); font-size: 13px; }
+
+.list { display: flex; flex-direction: column; }
+.item { display: flex; gap: 10px; align-items: center; padding: 10px 4px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.item:first-child { border-top: 0; }
+.item .name { flex: 1; min-width: 180px; word-break: break-all; }
+.item .name.link { cursor: pointer; color: var(--accent); }
+.item .meta { font-size: 12px; color: var(--muted); }
+.actions { display: flex; gap: 4px; flex-wrap: wrap; }
+.bar { height: 6px; background: var(--bar); border-radius: 99px; overflow: hidden; margin-top: 6px; }
+.bar > i { display: block; height: 100%; background: var(--accent); transition: width .4s; }
+.bar.ok > i { background: var(--ok); } .bar.bad > i { background: var(--bad); } .bar.warn > i { background: var(--warn); }
+.pill { font-size: 11px; padding: 1px 8px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); }
+.pill.ok { color: var(--ok); } .pill.bad { color: var(--bad); } .pill.warn { color: var(--warn); }
+.crumbs { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; font-size: 14px; }
+.crumbs a { cursor: pointer; text-decoration: none; }
+.drop { border: 2px dashed var(--line); border-radius: 10px; padding: 14px; text-align: center; color: var(--muted); font-size: 14px; }
+.drop.over { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.tabs2 { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+.empty { text-align: center; color: var(--muted); padding: 24px 0; }
+.steps { margin: 0; padding-left: 20px; }
+.steps li { margin-bottom: 10px; }
+
+#login { max-width: 360px; margin: 12vh auto; }
+#toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 20;
+  display: flex; flex-direction: column; gap: 6px; width: min(92vw, 420px); }
+#toast div { background: #111827; color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+#toast div.err { background: var(--bad); }
+.switch { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<section id="login" class="card hidden">
+  <h2>🔐 লগইন</h2>
+  <form id="loginForm">
+    <label class="small">পাসওয়ার্ড</label>
+    <input type="password" id="loginPass" autocomplete="current-password" required>
+    <div class="row" style="margin-top:12px"><button class="btn primary grow" type="submit">লগইন</button></div>
+  </form>
+</section>
+
+<div id="app" class="hidden">
+<header>
+  <div class="top">
+    <div class="brand">⬇️ Download Panel</div>
+    <div class="stats">
+      <span>⬇ <b id="stDown">0 B/s</b></span>
+      <span>⬆ <b id="stUp">0 B/s</b></span>
+      <span>💾 খালি <b id="stDisk">-</b></span>
+      <span>☁ Drive <b id="stDrive">-</b></span>
+    </div>
+  </div>
+  <nav id="nav">
+    <button data-tab="downloads" class="active">⬇ ডাউনলোড <span class="badge hidden" id="bDl"></span></button>
+    <button data-tab="files">📁 সার্ভারের ফাইল</button>
+    <button data-tab="drive">☁ Google Drive</button>
+    <button data-tab="jobs">🔄 ট্রান্সফার <span class="badge hidden" id="bJobs"></span></button>
+    <button data-tab="settings">⚙ সেটিং</button>
+  </nav>
+</header>
+
+<main>
+<!-- Downloads -->
+<section id="tab-downloads">
+  <div class="card">
+    <h2>➕ নতুন ডাউনলোড</h2>
+    <label class="small">লিংক দিন (প্রতি লাইনে একটা): Direct link, Magnet, Google Drive শেয়ার লিংক</label>
+    <textarea id="dlLinks" placeholder="https://example.com/file.zip&#10;magnet:?xt=urn:btih:...&#10;https://drive.google.com/file/d/..."></textarea>
+    <div class="row" style="margin-top:10px">
+      <div class="grow">
+        <label class="small">কোথায় যাবে?</label>
+        <select id="dlTarget">
+          <option value="server">সার্ভারে (aria2, দ্রুত)</option>
+          <option value="drive">সরাসরি Google Drive-এ</option>
+        </select>
+      </div>
+      <div class="grow">
+        <label class="small" id="dlFolderLabel">ফোল্ডার (খালি = মূল ফোল্ডার)</label>
+        <input type="text" id="dlFolder" placeholder="যেমন: Movies">
+      </div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn primary" id="dlAdd">⬇ ডাউনলোড শুরু</button>
+      <label class="btn">📄 .torrent ফাইল<input type="file" id="dlTorrent" accept=".torrent" multiple hidden></label>
+      <span class="muted">Drive লিংক বা Drive টার্গেটের জন্য আগে সেটিং-এ Drive কানেক্ট করুন।</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="margin-bottom:8px">
+      <h2 style="margin:0" class="grow">📋 ডাউনলোড তালিকা</h2>
+      <button class="btn sm" id="dlPauseAll">⏸ সব থামাও</button>
+      <button class="btn sm" id="dlResumeAll">▶ সব চালাও</button>
+      <button class="btn sm" id="dlPurge">🧹 শেষগুলো মুছো</button>
+    </div>
+    <div class="list" id="dlList"><div class="empty">কোনো ডাউনলোড নেই</div></div>
+  </div>
+</section>
+
+<!-- Server files -->
+<section id="tab-files" class="hidden">
+  <div class="card">
+    <div class="row" style="margin-bottom:10px">
+      <h2 style="margin:0" class="grow">📁 সার্ভারের ফাইল</h2>
+      <label class="btn primary">⬆ আপলোড<input type="file" id="fUpload" multiple hidden></label>
+      <button class="btn" id="fMkdir">📂 নতুন ফোল্ডার</button>
+      <button class="btn" id="fRefresh">🔄</button>
+    </div>
+    <div class="drop" id="fDrop">এখানে ফাইল টেনে এনে ছাড়ুন (drag &amp; drop), সার্ভারে আপলোড হবে</div>
+    <div class="list" id="fUploads" style="margin-top:8px"></div>
+    <div class="crumbs" id="fCrumbs" style="margin-top:12px"></div>
+    <div class="list" id="fList"></div>
+  </div>
+</section>
+
+<!-- Google Drive -->
+<section id="tab-drive" class="hidden">
+  <div class="card hidden" id="gConnect">
+    <h2>☁ Google Drive কানেক্ট করুন</h2>
+    <div class="tabs2">
+      <button class="btn sm primary" data-gmode="web">সহজ পদ্ধতি (ব্রাউজারে)</button>
+      <button class="btn sm" data-gmode="token">টোকেন পদ্ধতি (rclone authorize)</button>
+    </div>
+    <div id="gWeb">
+      <ol class="steps">
+        <li><button class="btn primary" id="gStart">🔑 Google লগইন লিংক তৈরি করো</button></li>
+        <li class="hidden" id="gStep2">এই লিংক খুলে Google একাউন্টে লগইন করে <b>Allow</b> দিন:<br>
+          <a id="gLink" target="_blank" rel="noopener">Google লগইন পেজ খুলুন ↗</a></li>
+        <li class="hidden" id="gStep3">Allow দেওয়ার পর একটা পেজ আসবে যেটা <b>খুলবে না</b> (127.0.0.1 ... লেখা)। এটাই স্বাভাবিক।
+          ওই পেজের <b>address bar থেকে পুরো লিংকটা কপি</b> করে এখানে পেস্ট করুন:
+          <div class="row" style="margin-top:6px">
+            <input type="url" id="gRedirect" class="grow" placeholder="http://127.0.0.1:53682/?state=...&code=...">
+            <button class="btn primary" id="gFinish">✔ কানেক্ট</button>
+          </div></li>
+      </ol>
+    </div>
+    <div id="gToken" class="hidden">
+      <p class="muted">নিজের পিসিতে <a href="https://rclone.org/downloads/" target="_blank" rel="noopener">rclone</a> নামিয়ে চালান:
+        <code>rclone authorize "drive"</code>। লগইন শেষে যে টোকেন দেখাবে সেটা পুরোটা পেস্ট করুন।</p>
+      <textarea id="gTokenText" placeholder='{"access_token":"...","token_type":"Bearer",...}'></textarea>
+      <div class="row" style="margin-top:8px"><button class="btn primary" id="gTokenSave">✔ কানেক্ট</button></div>
+    </div>
+  </div>
+
+  <div id="gMain" class="hidden">
+    <div class="card">
+      <div class="row" style="margin-bottom:10px">
+        <h2 style="margin:0" class="grow">☁ Google Drive <span class="muted" id="gQuota"></span></h2>
+        <label class="btn primary">⬆ পিসি থেকে Drive-এ আপলোড<input type="file" id="gUpload" multiple hidden></label>
+        <button class="btn" id="gMkdir">📂 নতুন ফোল্ডার</button>
+        <button class="btn" id="gRefresh">🔄</button>
+      </div>
+      <div class="drop" id="gDrop">এখানে ফাইল ছাড়ুন, সরাসরি Google Drive-এ আপলোড হবে</div>
+      <div class="list" id="gUploads" style="margin-top:8px"></div>
+      <div class="crumbs" id="gCrumbs" style="margin-top:12px"></div>
+      <div class="list" id="gList"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Jobs -->
+<section id="tab-jobs" class="hidden">
+  <div class="card">
+    <div class="row" style="margin-bottom:8px">
+      <h2 style="margin:0" class="grow">🔄 Drive ট্রান্সফার</h2>
+      <button class="btn sm" id="jClear">🧹 শেষগুলো মুছো</button>
+    </div>
+    <div class="list" id="jList"><div class="empty">কোনো ট্রান্সফার নেই</div></div>
+  </div>
+</section>
+
+<!-- Settings -->
+<section id="tab-settings" class="hidden">
+  <div class="card">
+    <h2>☁ Google Drive</h2>
+    <p id="sDriveState" class="muted"></p>
+    <div class="row">
+      <button class="btn" id="sDriveConnect">🔑 কানেক্ট / আবার কানেক্ট</button>
+      <button class="btn danger" id="sDriveDisconnect">⛔ ডিসকানেক্ট</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>🤖 অটো আপলোড</h2>
+    <label class="switch"><input type="checkbox" id="sAuto"> সার্ভারে ডাউনলোড শেষ হলেই Google Drive-এ পাঠাও</label>
+    <div class="row" style="margin-top:10px">
+      <div class="grow"><label class="small">Drive-এর কোন ফোল্ডারে</label><input type="text" id="sAutoDest"></div>
+    </div>
+    <label class="switch" style="margin-top:10px"><input type="checkbox" id="sAutoMove"> আপলোডের পর সার্ভার থেকে মুছে ফেলো (জায়গা বাঁচাতে)</label>
+    <div class="row" style="margin-top:12px"><button class="btn primary" id="sSave">💾 সেভ</button></div>
+  </div>
+  <div class="card">
+    <h2>🔐 পাসওয়ার্ড বদলান</h2>
+    <div class="row">
+      <div class="grow"><label class="small">বর্তমান পাসওয়ার্ড</label><input type="password" id="pOld" autocomplete="current-password"></div>
+      <div class="grow"><label class="small">নতুন পাসওয়ার্ড (৮+ অক্ষর)</label><input type="password" id="pNew" autocomplete="new-password"></div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn primary" id="pSave">বদলাও</button>
+      <button class="btn danger" id="logout">🚪 লগআউট</button>
+    </div>
+  </div>
+</section>
+</main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const enc = encodeURIComponent;
+const join = (a, b) => [a, b].filter(Boolean).join('/');
+
+function fmtSize(n) {
+  n = Number(n) || 0;
+  const u = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let i = 0;
+  while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
+  return (i ? n.toFixed(n < 10 ? 2 : 1) : n) + ' ' + u[i];
+}
+function fmtEta(s) {
+  if (!isFinite(s) || s <= 0) return '-';
+  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = Math.floor(s % 60);
+  return h ? `${h}h ${m}m` : m ? `${m}m ${sec}s` : `${sec}s`;
+}
+function fmtDate(t) {
+  const d = typeof t === 'number' ? new Date(t * 1000) : new Date(t);
+  return isNaN(d) ? '' : d.toLocaleString();
+}
+function toast(msg, err) {
+  const el = document.createElement('div');
+  el.textContent = msg;
+  if (err) el.className = 'err';
+  $('#toast').appendChild(el);
+  setTimeout(() => el.remove(), err ? 6000 : 3000);
+}
+
+async function api(path, opts = {}) {
+  const headers = { 'X-Panel': '1' };
+  if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
+  const r = await fetch(path, { method: opts.method || 'GET', headers,
+    body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined });
+  if (r.status === 401) { showLogin(); throw new Error('লগইন দরকার'); }
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || r.statusText);
+  return d;
+}
+const post = (p, b) => api(p, { method: 'POST', body: b || {} });
+const aria = (method, params = []) => post('/api/aria2', { method, params }).then(d => d.result);
+async function run(fn, okMsg) {
+  try { const r = await fn(); if (okMsg) toast(okMsg); return r; }
+  catch (e) { if (e.message !== 'লগইন দরকার') toast(e.message, true); }
+}
+
+// ---------- login
+function showLogin() { $('#app').classList.add('hidden'); $('#login').classList.remove('hidden'); $('#loginPass').focus(); }
+function showApp() { $('#login').classList.add('hidden'); $('#app').classList.remove('hidden'); }
+$('#loginForm').onsubmit = async e => {
+  e.preventDefault();
+  try { await post('/api/login', { password: $('#loginPass').value }); $('#loginPass').value = ''; start(); }
+  catch (err) { toast(err.message, true); }
+};
+$('#logout').onclick = async () => { await post('/api/logout'); location.reload(); };
+
+// ---------- tabs
+let tab = 'downloads';
+function setTab(name) {
+  tab = name;
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('main > section').forEach(s => s.classList.toggle('hidden', s.id !== 'tab-' + name));
+  try { localStorage.setItem('tab', name); } catch (e) {}
+  if (name === 'files') loadFiles();
+  if (name === 'drive') loadDrive();
+  if (name === 'settings') loadSettings();
+  tick();
+}
+$('#nav').onclick = e => { const b = e.target.closest('button'); if (b) setTab(b.dataset.tab); };
+
+// ---------- header info
+let info = { drive: false, state: {} };
+async function loadInfo() {
+  info = await api('/api/info');
+  $('#stDisk').textContent = fmtSize(info.disk_free);
+  $('#stDrive').textContent = info.drive ? '✔' : '✖';
+}
+
+// ---------- downloads (aria2)
+$('#dlTarget').onchange = () => {
+  $('#dlFolderLabel').textContent = $('#dlTarget').value === 'drive'
+    ? 'Drive-এর ফোল্ডার (খালি = My Drive)' : 'সার্ভারের ফোল্ডার (খালি = মূল ফোল্ডার)';
+};
+const isDriveLink = u => /^https?:\/\/(drive|docs)\.google\.com\//.test(u);
+
+$('#dlAdd').onclick = () => run(async () => {
+  const links = $('#dlLinks').value.split('\n').map(s => s.trim()).filter(Boolean);
+  if (!links.length) throw new Error('আগে লিংক দিন');
+  const target = $('#dlTarget').value, folder = $('#dlFolder').value.trim().replace(/^\/+|\/+$/g, '');
+  const driveLinks = links.filter(isDriveLink), others = links.filter(u => !isDriveLink(u));
+  for (const url of driveLinks) await post('/api/drive/link', { url, target, dest: folder });
+  if (target === 'drive') {
+    const magnets = others.filter(u => !/^https?:/.test(u));
+    if (magnets.length) throw new Error('Magnet/Torrent সরাসরি Drive-এ যায় না। সার্ভারে নামিয়ে অটো আপলোড চালু করুন।');
+    if (others.length) await post('/api/drive/copyurl', { urls: others, dest: folder });
+  } else {
+    const opts = folder ? { dir: await serverDir(folder) } : {};
+    for (const u of others) await aria('aria2.addUri', [[u], opts]);
+  }
+  $('#dlLinks').value = '';
+  toast(`${links.length}টা লিংক যোগ হয়েছে`);
+  if (driveLinks.length || target === 'drive') toast('Drive-এর কাজগুলো "ট্রান্সফার" ট্যাবে দেখুন');
+  tick();
+});
+
+let ariaDir = null;
+async function serverDir(folder) {
+  if (!ariaDir) ariaDir = (await aria('aria2.getGlobalOption')).dir;
+  return ariaDir.replace(/\/+$/, '') + '/' + folder;
+}
+
+$('#dlTorrent').onchange = e => run(async () => {
+  const folder = $('#dlFolder').value.trim().replace(/^\/+|\/+$/g, '');
+  for (const f of e.target.files) {
+    const b64 = await new Promise((ok, bad) => {
+      const r = new FileReader();
+      r.onload = () => ok(r.result.split(',')[1]);
+      r.onerror = bad;
+      r.readAsDataURL(f);
+    });
+    await aria('aria2.addTorrent', [b64, [], folder ? { dir: await serverDir(folder) } : {}]);
+  }
+  e.target.value = '';
+  tick();
+}, 'Torrent যোগ হয়েছে');
+
+$('#dlPauseAll').onclick = () => run(() => aria('aria2.pauseAll'), 'সব থামানো হয়েছে');
+$('#dlResumeAll').onclick = () => run(() => aria('aria2.unpauseAll'), 'সব চালু হয়েছে');
+$('#dlPurge').onclick = () => run(() => aria('aria2.purgeDownloadResult'), 'শেষগুলো তালিকা থেকে মুছেছে').then(tick);
+
+function dlName(d) {
+  if (d.bittorrent && d.bittorrent.info && d.bittorrent.info.name) return d.bittorrent.info.name;
+  const f = d.files && d.files[0];
+  if (f && f.path) return f.path.split('/').pop();
+  if (f && f.uris && f.uris[0]) return f.uris[0].uri;
+  return d.gid;
+}
+const STATUS = { active: ['চলছে', ''], waiting: ['অপেক্ষায়', 'warn'], paused: ['থামানো', 'warn'],
+  complete: ['শেষ ✔', 'ok'], error: ['সমস্যা', 'bad'], removed: ['বাতিল', 'bad'] };
+
+async function loadDownloads() {
+  const keys = ['gid', 'status', 'totalLength', 'completedLength', 'downloadSpeed', 'uploadSpeed',
+    'connections', 'numSeeders', 'errorMessage', 'files', 'bittorrent', 'dir', 'followedBy'];
+  const res = await aria('system.multicall', [[
+    { methodName: 'aria2.tellActive', params: [keys] },
+    { methodName: 'aria2.tellWaiting', params: [0, 200, keys] },
+    { methodName: 'aria2.tellStopped', params: [0, 200, keys] },
+    { methodName: 'aria2.getGlobalStat', params: [] },
+  ]]);
+  const [act, wait, stop, stat] = res.map(r => r[0]);
+  $('#stDown').textContent = fmtSize(stat.downloadSpeed) + '/s';
+  $('#stUp').textContent = fmtSize(stat.uploadSpeed) + '/s';
+  const n = act.length + wait.length;
+  $('#bDl').textContent = n; $('#bDl').classList.toggle('hidden', !n);
+  if (tab !== 'downloads') return;
+  const all = [...act, ...wait, ...stop.slice().reverse()];
+  if (!all.length) { $('#dlList').innerHTML = '<div class="empty">কোনো ডাউনলোড নেই</div>'; return; }
+  $('#dlList').innerHTML = all.map(d => {
+    const total = +d.totalLength, done = +d.completedLength, speed = +d.downloadSpeed;
+    const pct = total ? Math.floor(done / total * 100) : 0;
+    const [label, cls] = STATUS[d.status] || [d.status, ''];
+    const meta = [`${fmtSize(done)} / ${total ? fmtSize(total) : '?'}`];
+    if (d.status === 'active') {
+      meta.push(`${fmtSize(speed)}/s`, `ETA ${fmtEta((total - done) / speed)}`, `কানেকশন ${d.connections}`);
+      if (d.bittorrent) meta.push(`সিডার ${d.numSeeders}`);
+    }
+    if (d.errorMessage) meta.push(d.errorMessage);
+    const btns = [];
+    if (d.status === 'active' || d.status === 'waiting') btns.push(`<button class="btn sm" data-a="pause" data-g="${d.gid}">⏸</button>`);
+    if (d.status === 'paused') btns.push(`<button class="btn sm" data-a="unpause" data-g="${d.gid}">▶</button>`);
+    if (['active', 'waiting', 'paused'].includes(d.status)) btns.push(`<button class="btn sm danger" data-a="remove" data-g="${d.gid}">✖ বাতিল</button>`);
+    else btns.push(`<button class="btn sm" data-a="clear" data-g="${d.gid}">🧹</button>`);
+    if (d.status === 'error') btns.push(`<button class="btn sm" data-a="retry" data-g="${d.gid}">🔁 আবার</button>`);
+    return `<div class="item"><div class="name">${esc(dlName(d))} <span class="pill ${cls}">${label}</span>
+      <div class="meta">${esc(meta.join(' · '))}</div>
+      <div class="bar ${cls}"><i style="width:${d.status === 'complete' ? 100 : pct}%"></i></div></div>
+      <div class="actions">${btns.join('')}</div></div>`;
+  }).join('');
+}
+$('#dlList').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const g = b.dataset.g, a = b.dataset.a;
+  const acts = {
+    pause: () => aria('aria2.pause', [g]),
+    unpause: () => aria('aria2.unpause', [g]),
+    remove: () => confirm('এই ডাউনলোড বাতিল করবেন?') && aria('aria2.forceRemove', [g]),
+    clear: () => aria('aria2.removeDownloadResult', [g]),
+    retry: async () => {
+      const d = await aria('aria2.tellStatus', [g, ['files', 'dir']]);
+      const uris = d.files[0].uris.map(u => u.uri).filter((v, i, s) => s.indexOf(v) === i);
+      await aria('aria2.addUri', [uris, { dir: d.dir }]);
+      await aria('aria2.removeDownloadResult', [g]);
+    },
+  };
+  run(acts[a]).then(tick);
+};
+
+// ---------- server files
+let fPath = '';
+function crumbs(el, path, onGo, rootLabel) {
+  const parts = path ? path.split('/') : [];
+  let html = `<a data-p="">🏠 ${rootLabel}</a>`;
+  parts.forEach((p, i) => { html += ` / <a data-p="${esc(parts.slice(0, i + 1).join('/'))}">${esc(p)}</a>`; });
+  el.innerHTML = html;
+  el.onclick = e => { const a = e.target.closest('a'); if (a) onGo(a.dataset.p); };
+}
+const MEDIA = /\.(mp4|webm|mkv|mp3|m4a|ogg|wav|flac|jpg|jpeg|png|gif|webp|pdf|txt)$/i;
+
+async function loadFiles(path = fPath) {
+  const d = await run(() => api('/api/files?path=' + enc(path)));
+  if (!d) return;
+  fPath = d.path;
+  crumbs($('#fCrumbs'), fPath, p => loadFiles(p), 'সার্ভার');
+  if (!d.items.length) { $('#fList').innerHTML = '<div class="empty">ফোল্ডার খালি</div>'; return; }
+  $('#fList').innerHTML = d.items.map(i => {
+    const p = esc(join(fPath, i.name));
+    const btns = i.dir ? '' : `<a class="btn sm" href="/api/download?path=${enc(join(fPath, i.name))}" title="পিসিতে নামাও">⬇</a>`
+      + (MEDIA.test(i.name) ? `<a class="btn sm" target="_blank" href="/api/download?inline=1&path=${enc(join(fPath, i.name))}" title="ব্রাউজারে খোলো">▶</a>` : '')
+      + `<button class="btn sm" data-a="share" data-p="${p}" title="Direct link কপি">🔗</button>`;
+    return `<div class="item"><div class="name ${i.dir ? 'link' : ''}" ${i.dir ? `data-a="open" data-p="${p}"` : ''}>
+      ${i.dir ? '📁' : '📄'} ${esc(i.name)}<div class="meta">${i.dir ? 'ফোল্ডার' : fmtSize(i.size)} · ${fmtDate(i.mtime)}</div></div>
+      <div class="actions">${btns}
+        <button class="btn sm" data-a="todrive" data-p="${p}" title="Google Drive-এ পাঠাও">☁</button>
+        <button class="btn sm" data-a="rename" data-p="${p}" data-n="${esc(i.name)}" title="নাম বদলাও">✏</button>
+        <button class="btn sm danger" data-a="delete" data-p="${p}" title="মুছে ফেলো">🗑</button></div></div>`;
+  }).join('');
+}
+$('#fList').onclick = e => {
+  const el = e.target.closest('[data-a]'); if (!el) return;
+  const p = el.dataset.p;
+  ({
+    open: () => loadFiles(p),
+    share: () => run(async () => {
+      const d = await post('/api/share', { path: p });
+      const url = location.origin + d.url;
+      try { await navigator.clipboard.writeText(url); toast(`Direct link কপি হয়েছে (${d.days} দিন চলবে)`); }
+      catch (err) { prompt(`Direct link (${d.days} দিন চলবে):`, url); }
+    }),
+    todrive: () => {
+      if (!info.drive) return toast('আগে Google Drive কানেক্ট করুন', true);
+      const dest = prompt('Drive-এর কোন ফোল্ডারে পাঠাবেন? (খালি = My Drive)', info.state.autoupload_dest || '');
+      if (dest === null) return;
+      run(() => post('/api/drive/upload', { path: p, dest }), 'Drive-এ পাঠানো শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন').then(tick);
+    },
+    rename: () => {
+      const name = prompt('নতুন নাম:', el.dataset.n);
+      if (name && name !== el.dataset.n) run(() => post('/api/fs/rename', { path: p, name }), 'নাম বদলেছে').then(() => loadFiles());
+    },
+    delete: () => confirm(`"${p}" মুছে ফেলবেন? এটা আর ফেরত আসবে না।`)
+      && run(() => post('/api/fs/delete', { path: p }), 'মুছে ফেলা হয়েছে').then(() => loadFiles()),
+  })[el.dataset.a]();
+};
+$('#fRefresh').onclick = () => loadFiles();
+$('#fMkdir').onclick = () => {
+  const name = prompt('নতুন ফোল্ডারের নাম:');
+  if (name) run(() => post('/api/fs/mkdir', { dir: fPath, name }), 'ফোল্ডার তৈরি হয়েছে').then(() => loadFiles());
+};
+
+function uploadFile(file, url, listEl, done) {
+  const row = document.createElement('div');
+  row.className = 'item';
+  row.innerHTML = `<div class="name">⬆ ${esc(file.name)}<div class="meta">0%</div><div class="bar"><i style="width:0"></i></div></div>
+    <div class="actions"><button class="btn sm danger">✖</button></div>`;
+  listEl.prepend(row);
+  const xhr = new XMLHttpRequest();
+  const started = Date.now();
+  xhr.open('PUT', url);
+  xhr.setRequestHeader('X-Panel', '1');
+  xhr.upload.onprogress = e => {
+    if (!e.lengthComputable) return;
+    const pct = Math.floor(e.loaded / e.total * 100);
+    const speed = e.loaded / ((Date.now() - started) / 1000);
+    row.querySelector('i').style.width = pct + '%';
+    row.querySelector('.meta').textContent = `${pct}% · ${fmtSize(e.loaded)} / ${fmtSize(e.total)} · ${fmtSize(speed)}/s`
+      + (pct === 100 ? ' · শেষ করা হচ্ছে...' : '');
+  };
+  const finish = (ok, msg) => {
+    row.querySelector('.bar').classList.add(ok ? 'ok' : 'bad');
+    row.querySelector('.meta').textContent = msg;
+    row.querySelector('.actions').innerHTML = '';
+    setTimeout(() => row.remove(), ok ? 4000 : 15000);
+    if (ok) done();
+  };
+  xhr.onload = () => {
+    let d = {}; try { d = JSON.parse(xhr.responseText); } catch (e) {}
+    if (xhr.status === 401) showLogin();
+    xhr.status < 300 ? finish(true, 'আপলোড শেষ ✔') : finish(false, 'সমস্যা: ' + (d.error || xhr.statusText));
+  };
+  xhr.onerror = () => finish(false, 'নেটওয়ার্ক সমস্যা');
+  xhr.onabort = () => finish(false, 'বাতিল করা হয়েছে');
+  row.querySelector('button').onclick = () => xhr.abort();
+  xhr.send(file);
+}
+function serverUpload(files) {
+  const dir = fPath;
+  for (const f of files) uploadFile(f, `/api/upload?dir=${enc(dir)}&name=${enc(f.name)}`, $('#fUploads'), () => { if (tab === 'files') loadFiles(); });
+}
+function driveUpload(files) {
+  const dir = gPath;
+  for (const f of files) uploadFile(f, `/api/drive/put?dir=${enc(dir)}&name=${enc(f.name)}`, $('#gUploads'), () => { if (tab === 'drive') loadDrive(); });
+}
+function dropZone(el, handler) {
+  el.ondragover = e => { e.preventDefault(); el.classList.add('over'); };
+  el.ondragleave = () => el.classList.remove('over');
+  el.ondrop = e => { e.preventDefault(); el.classList.remove('over'); handler(e.dataTransfer.files); };
+}
+$('#fUpload').onchange = e => { serverUpload(e.target.files); e.target.value = ''; };
+$('#gUpload').onchange = e => { driveUpload(e.target.files); e.target.value = ''; };
+dropZone($('#fDrop'), serverUpload);
+dropZone($('#gDrop'), driveUpload);
+
+// ---------- Google Drive
+let gPath = '';
+async function loadDrive(path = gPath) {
+  await loadInfo().catch(() => {});
+  $('#gConnect').classList.toggle('hidden', info.drive);
+  $('#gMain').classList.toggle('hidden', !info.drive);
+  if (!info.drive) return;
+  const d = await run(() => api('/api/drive/list?path=' + enc(path)));
+  if (!d) return;
+  gPath = d.path;
+  crumbs($('#gCrumbs'), gPath, p => loadDrive(p), 'My Drive');
+  if (!d.items.length) $('#gList').innerHTML = '<div class="empty">ফোল্ডার খালি</div>';
+  else $('#gList').innerHTML = d.items.map(i => {
+    const p = esc(join(gPath, i.name));
+    return `<div class="item"><div class="name ${i.dir ? 'link' : ''}" ${i.dir ? `data-a="open" data-p="${p}"` : ''}>
+      ${i.dir ? '📁' : '📄'} ${esc(i.name)}<div class="meta">${i.dir ? 'ফোল্ডার' : fmtSize(i.size)} · ${fmtDate(i.mtime)}</div></div>
+      <div class="actions">
+        ${i.dir ? '' : `<a class="btn sm" href="/api/drive/download?path=${enc(join(gPath, i.name))}&size=${i.size}" title="পিসিতে নামাও">⬇</a>`}
+        <button class="btn sm" data-a="fetch" data-p="${p}" data-d="${i.dir ? 1 : ''}" title="সার্ভারে আনো">🖥</button>
+        <button class="btn sm danger" data-a="delete" data-p="${p}" data-d="${i.dir ? 1 : ''}" title="মুছে ফেলো (Trash-এ যাবে)">🗑</button></div></div>`;
+  }).join('');
+  api('/api/drive/about').then(a => {
+    $('#gQuota').textContent = a.total ? `(${fmtSize(a.used)} / ${fmtSize(a.total)} ব্যবহৃত)` : '';
+  }).catch(() => {});
+}
+$('#gList').onclick = e => {
+  const el = e.target.closest('[data-a]'); if (!el) return;
+  const p = el.dataset.p, dir = !!el.dataset.d;
+  ({
+    open: () => loadDrive(p),
+    fetch: () => {
+      const dest = prompt('সার্ভারের কোন ফোল্ডারে আনবেন? (খালি = মূল ফোল্ডার)', '');
+      if (dest === null) return;
+      run(() => post('/api/drive/fetch', { path: p, dir, dest }), 'সার্ভারে আনা শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন').then(tick);
+    },
+    delete: () => confirm(`Drive থেকে "${p}" মুছবেন? (Drive-এর Trash-এ যাবে)`)
+      && run(() => post('/api/drive/delete', { path: p, dir }), 'মুছে ফেলা হয়েছে').then(() => loadDrive()),
+  })[el.dataset.a]();
+};
+$('#gRefresh').onclick = () => loadDrive();
+$('#gMkdir').onclick = () => {
+  const name = prompt('নতুন ফোল্ডারের নাম:');
+  if (name) run(() => post('/api/drive/mkdir', { dir: gPath, name }), 'ফোল্ডার তৈরি হয়েছে').then(() => loadDrive());
+};
+document.querySelectorAll('[data-gmode]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('[data-gmode]').forEach(x => x.classList.toggle('primary', x === b));
+  $('#gWeb').classList.toggle('hidden', b.dataset.gmode !== 'web');
+  $('#gToken').classList.toggle('hidden', b.dataset.gmode !== 'token');
+});
+$('#gStart').onclick = () => run(async () => {
+  $('#gStart').disabled = true;
+  try {
+    const d = await post('/api/drive/auth/start');
+    $('#gLink').href = d.url;
+    $('#gStep2').classList.remove('hidden');
+    $('#gStep3').classList.remove('hidden');
+    window.open(d.url, '_blank', 'noopener');
+  } finally { $('#gStart').disabled = false; }
+});
+async function afterConnect() { toast('Google Drive কানেক্ট হয়েছে ✔'); await loadDrive(''); }
+$('#gFinish').onclick = () => run(async () => {
+  $('#gFinish').disabled = true;
+  try { await post('/api/drive/auth/finish', { url: $('#gRedirect').value }); $('#gRedirect').value = ''; await afterConnect(); }
+  finally { $('#gFinish').disabled = false; }
+});
+$('#gTokenSave').onclick = () => run(async () => {
+  await post('/api/drive/token', { token: $('#gTokenText').value });
+  $('#gTokenText').value = '';
+  await afterConnect();
+});
+
+// ---------- jobs
+async function loadJobs() {
+  const d = await api('/api/jobs');
+  const running = d.jobs.filter(j => j.status === 'running').length;
+  $('#bJobs').textContent = running; $('#bJobs').classList.toggle('hidden', !running);
+  if (tab !== 'jobs') return;
+  if (!d.jobs.length) { $('#jList').innerHTML = '<div class="empty">কোনো ট্রান্সফার নেই</div>'; return; }
+  const S = { running: ['চলছে', ''], done: ['শেষ ✔', 'ok'], error: ['সমস্যা', 'bad'], cancelled: ['বাতিল', 'warn'] };
+  $('#jList').innerHTML = d.jobs.map(j => {
+    const [label, cls] = S[j.status];
+    return `<div class="item"><div class="name">${esc(j.title)} <span class="pill ${cls}">${label}</span>
+      <div class="meta">${esc(j.error || j.info || (j.status === 'running' ? 'শুরু হচ্ছে...' : ''))} · ${fmtDate(j.started)}</div>
+      <div class="bar ${cls}"><i style="width:${j.progress}%"></i></div></div>
+      <div class="actions">${j.status === 'running' ? `<button class="btn sm danger" data-id="${j.id}">✖ বাতিল</button>` : ''}</div></div>`;
+  }).join('');
+}
+$('#jList').onclick = e => {
+  const b = e.target.closest('button[data-id]');
+  if (b) run(() => post('/api/jobs/cancel', { id: b.dataset.id })).then(tick);
+};
+$('#jClear').onclick = () => run(() => post('/api/jobs/clear')).then(tick);
+
+// ---------- settings
+async function loadSettings() {
+  await loadInfo();
+  $('#sDriveState').textContent = info.drive ? '✔ Google Drive কানেক্ট আছে।' : '✖ Google Drive কানেক্ট করা নেই।';
+  $('#sAuto').checked = info.state.autoupload;
+  $('#sAutoDest').value = info.state.autoupload_dest;
+  $('#sAutoMove').checked = info.state.autoupload_move;
+}
+$('#sSave').onclick = () => run(async () => {
+  if ($('#sAuto').checked && !info.drive) throw new Error('আগে Google Drive কানেক্ট করুন');
+  await post('/api/settings', { autoupload: $('#sAuto').checked, autoupload_dest: $('#sAutoDest').value, autoupload_move: $('#sAutoMove').checked });
+  await loadSettings();
+}, 'সেভ হয়েছে');
+$('#sDriveConnect').onclick = async () => {
+  if (info.drive && !confirm('আবার কানেক্ট করলে আগের কানেকশন বদলে যাবে। চালিয়ে যাবেন?')) return;
+  if (info.drive) await run(() => post('/api/drive/disconnect'));
+  setTab('drive');
+};
+$('#sDriveDisconnect').onclick = () => confirm('Google Drive ডিসকানেক্ট করবেন?')
+  && run(() => post('/api/drive/disconnect'), 'ডিসকানেক্ট হয়েছে').then(loadSettings);
+$('#pSave').onclick = () => run(async () => {
+  await post('/api/password', { old: $('#pOld').value, new: $('#pNew').value });
+  $('#pOld').value = $('#pNew').value = '';
+}, 'পাসওয়ার্ড বদলেছে');
+
+// ---------- polling
+let busy = false;
+async function tick() {
+  if (busy || $('#app').classList.contains('hidden')) return;
+  busy = true;
+  try { await Promise.all([loadDownloads().catch(e => { if (tab === 'downloads') $('#dlList').innerHTML = `<div class="empty">⚠ ${esc(e.message)}</div>`; }), loadJobs().catch(() => {})]); }
+  finally { busy = false; }
+}
+async function start() {
+  try { await loadInfo(); } catch (e) { return; }
+  showApp();
+  let saved = 'downloads';
+  try { saved = localStorage.getItem('tab') || saved; } catch (e) {}
+  setTab(saved);
+}
+setInterval(tick, 2000);
+setInterval(() => { if (!$('#app').classList.contains('hidden')) loadInfo().catch(() => {}); }, 30000);
+start();
+</script>
+</body>
+</html>
