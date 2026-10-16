@@ -26,7 +26,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-VERSION = "2.0"
+VERSION = "2.1"
 CONFIG_PATH = os.environ.get("PANEL_CONFIG", "/etc/aria2/panel.json")
 STATIC_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -57,6 +57,11 @@ IMAGE_EXT = (".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp")
 VIDEO_EXT = (".mp4", ".mkv", ".webm", ".avi", ".mov", ".m4v", ".flv", ".wmv", ".ts")
 TAR_EXT = (".tar", ".tar.gz", ".tgz", ".tar.bz2", ".tbz2", ".tar.xz", ".txz")
 ARCHIVE_EXT = (".zip", ".rar", ".7z") + TAR_EXT
+SUB_EXT = (".srt", ".ass", ".ssa", ".vtt")
+IMAGE_SUB_CODECS = {"hdmv_pgs_subtitle", "dvd_subtitle", "dvb_subtitle", "xsub"}
+MP4_LIKE = (".mp4", ".m4v", ".mov")
+LANG_RE = re.compile(r"^[a-z]{2,3}$")
+SUB_LANGS_RE = re.compile(r"^[A-Za-z0-9,.*-]{1,60}$")
 
 YTDLP_FORMATS = {
     "best": "bv*+ba/b",
@@ -641,7 +646,7 @@ def iter_lines(stream):
         yield buf.decode("utf-8", "replace")
 
 
-def start_job(title, cmd, parser=None, kind="cloud", on_done=None):
+def start_job(title, cmd, parser=None, kind="cloud", on_done=None, always=None):
     job = {"id": secrets.token_hex(4), "title": title, "kind": kind, "status": "running", "progress": 0,
            "info": "", "error": "", "started": time.time()}
     try:
@@ -653,11 +658,25 @@ def start_job(title, cmd, parser=None, kind="cloud", on_done=None):
     finished = sorted((j for j in JOBS.values() if j["status"] != "running"), key=lambda j: j["started"])
     for old in finished[:max(0, len(JOBS) - JOB_LIMIT)]:
         JOBS.pop(old["id"], None)
-    threading.Thread(target=watch_job, args=(job, parser, on_done), daemon=True).start()
+    threading.Thread(target=watch_job, args=(job, parser, on_done, always), daemon=True).start()
     return public_job(job)
 
 
-def watch_job(job, parser, on_done):
+FFMPEG_PROGRESS_LINE = re.compile(r"^[a-z_]+=\S*$")
+
+
+def watch_job(job, parser, on_done, always=None):
+    try:
+        _watch_job(job, parser, on_done)
+    finally:
+        if always:
+            try:
+                always(job)
+            except Exception:
+                traceback.print_exc()
+
+
+def _watch_job(job, parser, on_done):
     proc = job["_proc"]
     tail = []
     last_error = ""
@@ -669,7 +688,8 @@ def watch_job(job, parser, on_done):
                 pass
         if "ERROR" in line:
             last_error = line.split("ERROR", 1)[1].strip(" :")
-        tail = (tail + [line])[-5:]
+        if not FFMPEG_PROGRESS_LINE.match(line):
+            tail = (tail + [line])[-5:]
     rc = proc.wait()
     if job["status"] == "cancelled":
         return
@@ -696,7 +716,7 @@ def rclone_cmd(*args):
             "--stats-log-level", "NOTICE"] + list(args)
 
 
-def ytdlp_job(url, folder="", quality="best", playlist=False):
+def ytdlp_job(url, folder="", quality="best", playlist=False, subs=""):
     if not shutil.which("yt-dlp"):
         raise ApiError(500, "yt-dlp ইনস্টল নেই")
     dest = local_path(folder)
@@ -706,6 +726,10 @@ def ytdlp_job(url, folder="", quality="best", playlist=False):
         cmd += ["-f", YTDLP_FORMATS["audio"], "-x", "--audio-format", "mp3"]
     else:
         cmd += ["-f", YTDLP_FORMATS.get(quality, YTDLP_FORMATS["best"]), "--merge-output-format", "mp4"]
+        if subs:
+            if not SUB_LANGS_RE.match(subs):
+                raise ApiError(400, "সাবটাইটেলের ভাষা এভাবে লিখুন: bn,en")
+            cmd += ["--write-subs", "--write-auto-subs", "--sub-langs", subs, "--embed-subs"]
     cmd += ["--yes-playlist" if playlist else "--no-playlist", url]
     return start_job("🎬 %s" % url[:80], cmd, parse_ytdlp, kind="video")
 
@@ -733,7 +757,7 @@ def drive_link_job(url, target, folder, remote_name=""):
                      rclone_cmd(*args), parse_rclone)
 
 
-def add_links(urls, target="server", folder="", quality="best", playlist=False, remote=""):
+def add_links(urls, target="server", folder="", quality="best", playlist=False, remote="", subs=""):
     folder = clean_folder(folder)
     result = {"aria2": 0, "video": 0, "cloud": 0, "errors": []}
     opts = {}
@@ -747,7 +771,7 @@ def add_links(urls, target="server", folder="", quality="best", playlist=False, 
                 drive_link_job(u, target, folder, remote)
                 result["cloud"] += 1
             elif target == "video" or (target == "server" and VIDEO_HOST_RE.match(u)):
-                ytdlp_job(u, folder, quality, playlist)
+                ytdlp_job(u, folder, quality, playlist, subs)
                 result["video"] += 1
             elif target == "cloud":
                 if VIDEO_HOST_RE.match(u):
@@ -1248,7 +1272,7 @@ def api_add(h):
         raise ApiError(400, "আগে লিংক দিন")
     return add_links(urls, target=body.get("target", "server"), folder=body.get("folder", ""),
                      quality=body.get("quality", "best"), playlist=bool(body.get("playlist")),
-                     remote=body.get("remote", ""))
+                     remote=body.get("remote", ""), subs=(body.get("subs") or "").strip())
 
 
 @route("GET", "/api/files", role="viewer")
@@ -1453,6 +1477,238 @@ def api_extract(h):
         raise ApiError(500, "7zip ইনস্টল নেই")
     os.makedirs(dest)
     return start_job("🗜 খোলা হচ্ছে: %s" % name, cmd, parse_percent, kind="archive")
+
+
+def probe_video(path):
+    if not shutil.which("ffprobe"):
+        raise ApiError(500, "ffmpeg ইনস্টল নেই")
+    try:
+        r = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
+                            "format=duration:stream=index,codec_name,codec_type:stream_tags=language,title"
+                            ":stream_disposition=default,forced,attached_pic", "-of", "json", path],
+                           capture_output=True, text=True, timeout=60, stdin=subprocess.DEVNULL)
+    except subprocess.TimeoutExpired:
+        raise ApiError(504, "ভিডিও পড়তে অনেক সময় লাগছে")
+    if r.returncode != 0:
+        raise ApiError(400, "ভিডিও ফাইল পড়া যায়নি")
+    data = json.loads(r.stdout or "{}")
+    subs, audio, video = [], 0, None
+    for st in data.get("streams") or []:
+        kind = st.get("codec_type")
+        tags = {k.lower(): v for k, v in (st.get("tags") or {}).items()}
+        disp = st.get("disposition") or {}
+        codec = st.get("codec_name", "")
+        if kind == "subtitle":
+            subs.append({"index": len(subs), "codec": codec, "language": tags.get("language", ""),
+                         "title": tags.get("title", ""), "default": bool(disp.get("default")),
+                         "forced": bool(disp.get("forced")), "image": codec in IMAGE_SUB_CODECS})
+        elif kind == "audio":
+            audio += 1
+        elif kind == "video" and video is None and not disp.get("attached_pic"):
+            video = codec
+    try:
+        duration = float((data.get("format") or {}).get("duration") or 0)
+    except ValueError:
+        duration = 0
+    return {"duration": duration, "subs": subs, "audio": audio, "video": video}
+
+
+def fmt_clock(sec):
+    sec = int(sec)
+    return "%d:%02d:%02d" % (sec // 3600, sec % 3600 // 60, sec % 60) if sec >= 3600 else "%d:%02d" % (sec // 60, sec % 60)
+
+
+def ffmpeg_parser(duration):
+    def parse(job, line):
+        key, _, value = line.partition("=")
+        if key in ("out_time_us", "out_time_ms") and value.isdigit() and duration > 0:
+            done = int(value) / 1e6
+            job["progress"] = min(99, int(done * 100 / duration))
+            job["_clock"] = "%s / %s" % (fmt_clock(done), fmt_clock(duration))
+        elif key == "speed" and value not in ("N/A", ""):
+            job["info"] = "%s · স্পিড %s" % (job.get("_clock", ""), value)
+    return parse
+
+
+def video_source(rel):
+    src = local_path(rel)
+    if not os.path.isfile(src) or not src.lower().endswith(VIDEO_EXT):
+        raise ApiError(400, "এটা ভিডিও ফাইল না")
+    if not shutil.which("ffmpeg"):
+        raise ApiError(500, "ffmpeg ইনস্টল নেই")
+    return src
+
+
+def remove_on_failure(path):
+    def cleanup(job):
+        if job["status"] != "done" and os.path.exists(path):
+            os.remove(path)
+    return cleanup
+
+
+@route("GET", "/api/subs/info", role="viewer")
+def api_subs_info(h):
+    src = video_source(h.query.get("path"))
+    info = probe_video(src)
+    folder = os.path.dirname(src)
+    info["files"] = sorted(rel_path(os.path.join(folder, n)) for n in os.listdir(folder)
+                           if n.lower().endswith(SUB_EXT) and os.path.isfile(os.path.join(folder, n)))
+    return info
+
+
+@route("POST", "/api/subs/edit")
+def api_subs_edit(h):
+    """Remove and/or add soft subtitle tracks without re-encoding (stream copy)."""
+    body = h.json()
+    src = video_source(body.get("path"))
+    info = probe_video(src)
+    subs = info["subs"]
+    try:
+        remove = sorted({int(i) for i in body.get("remove") or []})
+    except (TypeError, ValueError):
+        raise ApiError(400, "ভুল সাবটাইটেল নম্বর")
+    if any(i < 0 or i >= len(subs) for i in remove):
+        raise ApiError(400, "ভুল সাবটাইটেল নম্বর")
+    add = []
+    for a in body.get("add") or []:
+        p = local_path(a.get("path"))
+        if not os.path.isfile(p) or not p.lower().endswith(SUB_EXT):
+            raise ApiError(400, "সাবটাইটেল ফাইল পাওয়া যায়নি (.srt/.ass/.vtt)")
+        lang = (a.get("lang") or "").strip().lower()
+        if lang and not LANG_RE.match(lang):
+            raise ApiError(400, "ভুল ভাষার কোড: %s" % lang)
+        add.append({"path": p, "lang": lang, "title": (a.get("title") or "").strip()[:80]})
+    default = body.get("default") or {}
+    kept = [i for i in range(len(subs)) if i not in remove]
+    total = len(kept) + len(add)
+    target = None
+    if default.get("type") == "old" and int(default.get("index", -1)) in kept:
+        target = kept.index(int(default["index"]))
+    elif default.get("type") == "new" and 0 <= int(default.get("index", -1)) < len(add):
+        target = len(kept) + int(default["index"])
+    elif default.get("type") == "off":
+        target = -1
+    if not remove and not add and target is None:
+        raise ApiError(400, "কিছুই বদলানো হয়নি")
+
+    base, ext = os.path.splitext(src)
+    out_ext = ext.lower() if ext.lower() in MP4_LIKE + (".mkv", ".webm") else ".mkv"
+    mp4_like, webm = out_ext in MP4_LIKE, out_ext == ".webm"
+    if (mp4_like or webm) and any(subs[i]["image"] for i in kept):
+        raise ApiError(400, "এই ভিডিওতে ছবির (PGS/DVD) সাবটাইটেল আছে, যা MP4-এ রাখা যায় না। ওগুলো মুছে দিন।")
+    out = unique_path(base + " [subs]" + out_ext)
+
+    cmd = ["ffmpeg", "-hide_banner", "-nostdin", "-y", "-v", "error", "-i", src]
+    for a in add:
+        cmd += ["-i", a["path"]]
+    if mp4_like or webm:
+        cmd += ["-map", "0:v?", "-map", "0:a?", "-map", "0:s?"]
+    else:
+        cmd += ["-map", "0"]
+    for i in remove:
+        cmd += ["-map", "-0:s:%d" % i]
+    for n in range(len(add)):
+        cmd += ["-map", "%d:0" % (n + 1)]
+    cmd += ["-map_metadata", "0", "-map_chapters", "0", "-c", "copy"]
+    if mp4_like:
+        cmd += ["-c:s", "mov_text"]
+    elif webm:
+        cmd += ["-c:s", "webvtt"]
+    for n, a in enumerate(add):
+        k = len(kept) + n
+        if not (mp4_like or webm):
+            cmd += ["-c:s:%d" % k, "ass" if a["path"].lower().endswith((".ass", ".ssa")) else "srt"]
+        if a["lang"]:
+            cmd += ["-metadata:s:s:%d" % k, "language=" + a["lang"]]
+        if a["title"]:
+            cmd += ["-metadata:s:s:%d" % k, "title=" + a["title"]]
+    if target is not None:
+        for k in range(total):
+            cmd += ["-disposition:s:%d" % k, "default" if k == target else "0"]
+    cmd += ["-progress", "pipe:1", "-nostats", out]
+
+    replace = bool(body.get("replace"))
+
+    def finish(job):
+        if not replace:
+            return
+        final = base + out_ext
+        os.remove(src)
+        if final != src and os.path.exists(final):
+            return
+        os.replace(out, final)
+        job["title"] = "🎞 সাবটাইটেল (আসল ফাইল বদলানো হয়েছে): %s" % os.path.basename(final)
+
+    return start_job("🎞 সাবটাইটেল: %s" % os.path.basename(src), cmd, ffmpeg_parser(info["duration"]),
+                     kind="video", on_done=finish, always=remove_on_failure(out))
+
+
+@route("POST", "/api/subs/extract")
+def api_subs_extract(h):
+    """Save one subtitle track as a separate .srt/.ass file next to the video."""
+    body = h.json()
+    src = video_source(body.get("path"))
+    subs = probe_video(src)["subs"]
+    idx = int(body.get("index", -1))
+    if not 0 <= idx < len(subs):
+        raise ApiError(400, "ভুল সাবটাইটেল নম্বর")
+    sub = subs[idx]
+    if sub["image"]:
+        raise ApiError(400, "এটা ছবির (PGS/DVD) সাবটাইটেল, লেখা হিসেবে বের করা যায় না")
+    ext = ".ass" if sub["codec"] in ("ass", "ssa") else ".srt"
+    base = os.path.splitext(src)[0]
+    out = unique_path(base + (("." + sub["language"]) if LANG_RE.match(sub["language"]) else "") + ext)
+    cmd = ["ffmpeg", "-hide_banner", "-nostdin", "-y", "-v", "error", "-i", src, "-map", "0:s:%d" % idx, out]
+    return start_job("🎞 সাবটাইটেল বের করা: %s" % os.path.basename(out), cmd, kind="video",
+                     always=remove_on_failure(out))
+
+
+@route("POST", "/api/subs/burn")
+def api_subs_burn(h):
+    """Render a subtitle into the picture (re-encodes the video to H.264/AAC MP4)."""
+    body = h.json()
+    src = video_source(body.get("path"))
+    info = probe_video(src)
+    source = body.get("source") or {}
+    # libass filter arguments are hard to escape, so give ffmpeg simple symlinked paths.
+    work = os.path.join(DATA_DIR, "work", secrets.token_hex(6))
+    os.makedirs(work)
+    video_link = os.path.join(work, "in" + os.path.splitext(src)[1].lower())
+    os.symlink(src, video_link)
+    cmd = ["ffmpeg", "-hide_banner", "-nostdin", "-y", "-v", "error", "-i", video_link]
+    try:
+        if source.get("type") == "track":
+            idx = int(source.get("index", -1))
+            if not 0 <= idx < len(info["subs"]):
+                raise ApiError(400, "ভুল সাবটাইটেল নম্বর")
+            if info["subs"][idx]["image"]:
+                cmd += ["-filter_complex", "[0:v:0][0:s:%d]overlay[v]" % idx, "-map", "[v]"]
+            else:
+                cmd += ["-map", "0:v:0", "-vf", "subtitles=%s:si=%d" % (video_link, idx)]
+        elif source.get("type") == "file":
+            sub = local_path(source.get("path"))
+            if not os.path.isfile(sub) or not sub.lower().endswith(SUB_EXT):
+                raise ApiError(400, "সাবটাইটেল ফাইল পাওয়া যায়নি")
+            sub_link = os.path.join(work, "sub" + os.path.splitext(sub)[1].lower())
+            os.symlink(sub, sub_link)
+            cmd += ["-map", "0:v:0", "-vf", "subtitles=%s" % sub_link]
+        else:
+            raise ApiError(400, "কোন সাবটাইটেল বসাবেন বেছে নিন")
+    except Exception:
+        shutil.rmtree(work, ignore_errors=True)
+        raise
+    out = unique_path(os.path.splitext(src)[0] + " [hardsub].mp4")
+    preset = "medium" if body.get("quality") == "good" else "veryfast"
+    cmd += ["-map", "0:a?", "-c:v", "libx264", "-preset", preset, "-crf", "22", "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", "-sn",
+            "-progress", "pipe:1", "-nostats", out]
+
+    def cleanup(job):
+        shutil.rmtree(work, ignore_errors=True)
+        remove_on_failure(out)(job)
+
+    return start_job("🔥 সাবটাইটেল বসানো: %s" % os.path.basename(src), cmd, ffmpeg_parser(info["duration"]),
+                     kind="video", always=cleanup)
 
 
 @route("GET", "/api/cloud/list", role="viewer")

@@ -123,9 +123,10 @@ step "Installing packages"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
 apt-get install -y aria2 nginx python3 unzip curl openssl ca-certificates ffmpeg p7zip-full
-# Optional extras: newer 7-Zip and unrar handle RAR5 archives better. Not every
+# Optional extras: newer 7-Zip and unrar handle RAR5 archives better, and Noto
+# fonts let burned-in subtitles render Bangla and other scripts. Not every
 # release has them (unrar lives in multiverse/non-free), so failures are fine.
-for pkg in 7zip unrar unattended-upgrades; do
+for pkg in 7zip unrar unattended-upgrades fonts-noto-core; do
   apt-get install -y "$pkg" >/dev/null 2>&1 || yellow "Optional package ${pkg} not available, skipping."
 done
 
