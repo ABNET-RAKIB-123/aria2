@@ -95,6 +95,11 @@ textarea { min-height: 90px; resize: vertical; font-family: ui-monospace, monosp
 table.simple { width: 100%; border-collapse: collapse; font-size: 14px; }
 table.simple td, table.simple th { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; }
 
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 30; display: flex; align-items: flex-start; justify-content: center; padding: 24px 12px; overflow-y: auto; }
+.modal { background: var(--card); border: 1px solid var(--line); border-radius: 12px; width: min(720px, 100%); padding: 16px; }
+.modal h3 { margin: 16px 0 6px; font-size: 15px; }
+.modal select, .modal input[type=text] { width: auto; }
+
 #login { max-width: 360px; margin: 12vh auto; }
 #toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 20;
   display: flex; flex-direction: column; gap: 6px; width: min(92vw, 420px); }
@@ -176,6 +181,8 @@ table.simple td, table.simple th { padding: 6px 8px; border-bottom: 1px solid va
     </div>
     <div class="row mt">
       <label class="switch" id="dlPlaylistBox"><input type="checkbox" id="dlPlaylist"> প্লেলিস্টের সব ভিডিও নামাও</label>
+      <label class="switch" id="dlSubsBox"><input type="checkbox" id="dlSubs"> সাবটাইটেল সহ, ভাষা:
+        <input type="text" id="dlSubsLang" value="bn,en" style="width:90px;padding:4px 8px"></label>
     </div>
     <div class="row mt">
       <button class="btn primary" id="dlAdd">⬇ ডাউনলোড শুরু</button>
@@ -424,6 +431,41 @@ table.simple td, table.simple th { padding: 6px 8px; border-bottom: 1px solid va
 </main>
 </div>
 
+<div class="modal-bg hidden" id="subModal">
+  <div class="modal">
+    <div class="row"><h2 class="grow" style="margin:0">🎞 সাবটাইটেল</h2><button class="btn sm" id="subClose">✖</button></div>
+    <p class="muted" id="subFile"></p>
+
+    <h3>ভিডিওর ভেতরের সাবটাইটেল</h3>
+    <div class="list" id="subTracks"></div>
+
+    <h3>নতুন সাবটাইটেল যোগ করুন</h3>
+    <div class="row">
+      <label class="btn">⬆ পিসি থেকে (.srt / .ass / .vtt)<input type="file" id="subUpload" accept=".srt,.ass,.ssa,.vtt" hidden></label>
+      <select id="subPick"></select>
+      <button class="btn" id="subPickAdd">➕ যোগ</button>
+    </div>
+    <div class="list" id="subUploads"></div>
+    <div class="list" id="subNew"></div>
+
+    <div class="mt">
+      <label class="switch"><input type="radio" name="subDefault" value="keep" checked> ডিফল্ট সাবটাইটেল যেমন আছে থাকবে</label>
+      <label class="switch"><input type="radio" name="subDefault" value="off"> কোনোটাই ডিফল্ট না (প্লেয়ারে নিজে চালু করতে হবে)</label>
+      <label class="switch"><input type="checkbox" id="subReplace"> আসল ফাইল বদলে দাও (টিক না দিলে "[subs]" নামে নতুন ফাইল হবে)</label>
+    </div>
+    <div class="row mt"><button class="btn primary" id="subSave">💾 সেভ (দ্রুত, ভিডিওর কোয়ালিটি কমে না)</button></div>
+
+    <h3>🔥 ছবির ভেতরে বসানো (burn-in)</h3>
+    <p class="muted">যেসব টিভি/প্লেয়ারে সাবটাইটেল চালু করা যায় না, বা Facebook-এ আপলোডের জন্য। পুরো ভিডিও নতুন করে বানাতে হয়, তাই অনেক সময় লাগে
+      (ছোট সার্ভারে ২ ঘণ্টার মুভিতে ১ ঘণ্টা বা বেশি)। "[hardsub]" নামে নতুন MP4 তৈরি হবে, আসল ফাইল থাকবে।</p>
+    <div class="row">
+      <select id="subBurnSrc" class="grow" style="width:100%"></select>
+      <select id="subBurnQ"><option value="fast">দ্রুত</option><option value="good">ভালো কোয়ালিটি (আরো ধীর)</option></select>
+      <button class="btn" id="subBurn">🔥 বসাও</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -550,6 +592,7 @@ function updateDlForm() {
   $('#dlRemoteBox').classList.toggle('hidden', t !== 'cloud');
   $('#dlQualityBox').classList.toggle('hidden', t === 'cloud');
   $('#dlPlaylistBox').classList.toggle('hidden', t === 'cloud');
+  $('#dlSubsBox').classList.toggle('hidden', t === 'cloud');
   $('#dlFolderLabel').textContent = t === 'cloud' ? 'Cloud-এর ফোল্ডার (খালি = মূল ফোল্ডার)' : 'সার্ভারের ফোল্ডার (খালি = মূল ফোল্ডার)';
 }
 $('#dlTarget').onchange = updateDlForm;
@@ -558,7 +601,8 @@ $('#dlAdd').onclick = () => run(async () => {
   const urls = $('#dlLinks').value.split('\n').map(s => s.trim()).filter(Boolean);
   if (!urls.length) throw new Error('আগে লিংক দিন');
   const r = await post('/api/add', { urls, target: $('#dlTarget').value, folder: cleanFolder($('#dlFolder').value),
-    quality: $('#dlQuality').value, playlist: $('#dlPlaylist').checked, remote: $('#dlRemote').value });
+    quality: $('#dlQuality').value, playlist: $('#dlPlaylist').checked, remote: $('#dlRemote').value,
+    subs: $('#dlSubs').checked ? $('#dlSubsLang').value.trim() : '' });
   const parts = [];
   if (r.aria2) parts.push(`⬇ ${r.aria2}টা ডাউনলোড শুরু`);
   if (r.video) parts.push(`🎬 ${r.video}টা ভিডিও (ট্রান্সফার ট্যাবে দেখুন)`);
@@ -672,6 +716,7 @@ function crumbs(el, path, onGo, rootLabel) {
 }
 const MEDIA = /\.(mp4|webm|mkv|mov|m4v|mp3|m4a|ogg|wav|flac|jpg|jpeg|png|gif|webp|pdf|txt)$/i;
 const THUMBABLE = /\.(jpg|jpeg|png|gif|webp|bmp|mp4|mkv|webm|avi|mov|m4v|flv|wmv|ts)$/i;
+const VIDEO = /\.(mp4|mkv|webm|avi|mov|m4v|flv|wmv|ts)$/i;
 const ARCHIVE = /\.(zip|rar|7z|tar|tar\.gz|tgz|tar\.bz2|tbz2|tar\.xz|txz)$/i;
 function icon(i) {
   if (i.dir) return '📁';
@@ -706,11 +751,13 @@ function uploadFile(file, url, listEl, done) {
     row.querySelector('.meta').textContent = msg;
     row.querySelector('.actions').innerHTML = '';
     setTimeout(() => row.remove(), ok ? 4000 : 15000);
-    if (ok) done();
+    if (ok) done(resp);
   };
+  let resp = {};
   xhr.onload = () => {
     let d = {}; try { d = JSON.parse(xhr.responseText); } catch (e) {}
     if (xhr.status === 401) showLogin();
+    resp = d;
     xhr.status < 300 ? finish(true, 'আপলোড শেষ ✔') : finish(false, 'সমস্যা: ' + (d.error || xhr.statusText));
   };
   xhr.onerror = () => finish(false, 'নেটওয়ার্ক সমস্যা');
@@ -766,6 +813,7 @@ function fileActions(i) {
       + (MEDIA.test(i.name) ? `<a class="btn sm" target="_blank" href="${dl}&inline=1" title="ব্রাউজারে খোলো">▶</a>` : '');
   if (can('user')) {
     if (!i.dir && ARCHIVE.test(i.name)) h += `<button class="btn sm" data-a="extract" data-p="${p}" title="খোলো (extract)">🗜</button>`;
+    if (!i.dir && VIDEO.test(i.name)) h += `<button class="btn sm" data-a="subs" data-p="${p}" title="সাবটাইটেল">🎞</button>`;
     h += `<button class="btn sm" data-a="share" data-p="${p}" title="Direct link">🔗</button>`
       + `<button class="btn sm" data-a="tocloud" data-p="${p}" title="Cloud-এ পাঠাও">☁</button>`
       + `<button class="btn sm" data-a="rename" data-p="${p}" data-n="${esc(i.name)}" title="নাম বদলাও">✏</button>`
@@ -840,6 +888,7 @@ $('#fList').onclick = e => {
     view: () => window.open('/api/download?inline=1&path=' + enc(p), '_blank'),
     share: () => run(() => shareLink(p)),
     extract: () => run(() => post('/api/fs/extract', { path: p }), 'খোলা শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন').then(tick),
+    subs: () => openSubs(p),
     tocloud: () => {
       const c = askCloud(info.state.autoupload_dest); if (!c) return;
       run(() => post('/api/cloud/upload', { path: p, ...c }), 'Cloud-এ পাঠানো শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন').then(tick);
@@ -995,7 +1044,7 @@ async function loadJobs() {
   const S = { running: ['চলছে', ''], done: ['শেষ ✔', 'ok'], error: ['সমস্যা', 'bad'], cancelled: ['বাতিল', 'warn'] };
   $('#jList').innerHTML = d.jobs.map(j => {
     const [label, cls] = S[j.status];
-    const title = j.title.startsWith('🎬') || j.title.startsWith('🗜') ? j.title : (KIND[j.kind] || '') + ' ' + j.title;
+    const title = /^\p{Extended_Pictographic}/u.test(j.title) ? j.title : (KIND[j.kind] || '') + ' ' + j.title;
     return `<div class="item"><div class="name">${esc(title)} <span class="pill ${cls}">${label}</span>
       <div class="meta">${esc(j.error || j.info || (j.status === 'running' ? 'শুরু হচ্ছে...' : ''))} · ${fmtDate(j.started)}</div>
       <div class="bar ${cls}"><i style="width:${j.progress}%"></i></div></div>
@@ -1100,6 +1149,117 @@ $('#uTable').onclick = e => {
   if (del && confirm(`"${del.dataset.del}" ইউজার মুছবেন?`))
     run(() => post('/api/users/delete', { name: del.dataset.del }), 'মুছে ফেলা হয়েছে').then(loadSettings);
 };
+
+// ---------- subtitles
+const LANGS = [['ben', 'বাংলা'], ['eng', 'English'], ['hin', 'Hindi'], ['urd', 'Urdu'], ['ara', 'Arabic'],
+  ['spa', 'Spanish'], ['fra', 'French'], ['kor', 'Korean'], ['jpn', 'Japanese'], ['chi', 'Chinese'], ['und', 'অজানা']];
+const LANG_NAME = Object.fromEntries([...LANGS, ['fre', 'French'], ['zho', 'Chinese'], ['bn', 'বাংলা'], ['en', 'English']]);
+let subVideo = '', subInfo = null, subNew = [];
+const subDir = () => subVideo.includes('/') ? subVideo.slice(0, subVideo.lastIndexOf('/')) : '';
+const baseName = p => p.split('/').pop();
+function guessLang(name) {
+  const n = name.toLowerCase();
+  if (/(\.|_|-|\b)(bn|ben|bangla|bengali)(\.|_|-|\b)/.test(n)) return 'ben';
+  if (/(\.|_|-|\b)(en|eng|english)(\.|_|-|\b)/.test(n)) return 'eng';
+  if (/(\.|_|-|\b)(hi|hin|hindi)(\.|_|-|\b)/.test(n)) return 'hin';
+  return 'und';
+}
+async function openSubs(p) {
+  subVideo = p; subNew = [];
+  $('#subReplace').checked = false;
+  $('#subFile').textContent = p;
+  $('#subTracks').innerHTML = '<div class="empty">পড়া হচ্ছে...</div>';
+  $('#subNew').innerHTML = '';
+  $('#subModal').classList.remove('hidden');
+  subInfo = await run(() => api('/api/subs/info?path=' + enc(p)));
+  if (!subInfo) { closeSubs(); return; }
+  renderSubs();
+}
+function closeSubs() { $('#subModal').classList.add('hidden'); }
+function renderSubs() {
+  const t = subInfo.subs;
+  $('#subTracks').innerHTML = t.length ? t.map(x => `<div class="item">
+      <div class="name"><b>#${x.index + 1}</b> ${esc(LANG_NAME[x.language] || x.language || 'ভাষা লেখা নেই')}
+        ${x.title ? '· ' + esc(x.title) : ''} ${x.default ? '<span class="pill ok">ডিফল্ট</span>' : ''} ${x.forced ? '<span class="pill">forced</span>' : ''}
+        <div class="meta">${esc(x.codec)}${x.image ? ' (ছবির সাবটাইটেল)' : ''}</div></div>
+      <div class="actions">
+        <label class="switch"><input type="radio" name="subDefault" value="old:${x.index}"> ডিফল্ট</label>
+        <label class="switch"><input type="checkbox" data-rm="${x.index}"> মুছো</label>
+        ${x.image ? '' : `<button class="btn sm" data-extract="${x.index}" title=".srt ফাইল হিসেবে আলাদা করো">⬇ .srt</button>`}
+      </div></div>`).join('')
+    : '<div class="empty">এই ভিডিওতে আলাদা (soft) সাবটাইটেল নেই। ছবির ভেতরে লেখা থাকলে সেটা মোছা যায় না।</div>';
+  $('#subPick').innerHTML = subInfo.files.length
+    ? subInfo.files.map(f => `<option value="${esc(f)}">${esc(baseName(f))}</option>`).join('')
+    : '<option value="">এই ফোল্ডারে কোনো সাবটাইটেল ফাইল নেই</option>';
+  renderSubNew();
+}
+function renderSubNew() {
+  $('#subNew').innerHTML = subNew.map((n, i) => `<div class="item">
+      <div class="name">➕ ${esc(baseName(n.path))}</div>
+      <div class="actions">
+        <select data-lang="${i}">${LANGS.map(([c, l]) => `<option value="${c}" ${c === n.lang ? 'selected' : ''}>${l}</option>`).join('')}</select>
+        <input type="text" data-title="${i}" placeholder="নাম (ঐচ্ছিক)" value="${esc(n.title)}" style="width:120px">
+        <label class="switch"><input type="radio" name="subDefault" value="new:${i}"> ডিফল্ট</label>
+        <button class="btn sm danger" data-unadd="${i}">✖</button>
+      </div></div>`).join('');
+  const burn = subInfo.subs.map(x => `<option value="track:${x.index}">ভিডিওর #${x.index + 1} (${esc(LANG_NAME[x.language] || x.language || '?')})</option>`)
+    .concat([...new Set([...subNew.map(n => n.path), ...subInfo.files])].map(f => `<option value="file:${esc(f)}">ফাইল: ${esc(baseName(f))}</option>`));
+  $('#subBurnSrc').innerHTML = burn.join('') || '<option value="">আগে একটা সাবটাইটেল যোগ করুন</option>';
+}
+function addSubFile(path) {
+  if (!path || subNew.some(n => n.path === path)) return;
+  subNew.push({ path, lang: guessLang(baseName(path)), title: '' });
+  renderSubNew();
+}
+$('#subClose').onclick = closeSubs;
+$('#subModal').onclick = e => { if (e.target.id === 'subModal') closeSubs(); };
+$('#subPickAdd').onclick = () => addSubFile($('#subPick').value);
+$('#subUpload').onchange = e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  const dir = subDir();
+  uploadFile(f, `/api/upload?dir=${enc(dir)}&name=${enc(f.name)}`, $('#subUploads'), d => {
+    const path = join(dir, d.name || f.name);
+    if (!subInfo.files.includes(path)) subInfo.files.push(path);
+    addSubFile(path);
+  });
+};
+$('#subNew').oninput = e => {
+  const t = e.target;
+  if (t.dataset.lang) subNew[+t.dataset.lang].lang = t.value;
+  if (t.dataset.title) subNew[+t.dataset.title].title = t.value;
+};
+$('#subNew').onclick = e => {
+  const b = e.target.closest('[data-unadd]');
+  if (b) { subNew.splice(+b.dataset.unadd, 1); renderSubNew(); }
+};
+$('#subTracks').onclick = e => {
+  const b = e.target.closest('[data-extract]');
+  if (b) run(() => post('/api/subs/extract', { path: subVideo, index: +b.dataset.extract }), '.srt ফাইল বানানো শুরু হয়েছে, ভিডিওর পাশেই পাবেন').then(tick);
+};
+$('#subSave').onclick = () => run(async () => {
+  const remove = $$('#subTracks [data-rm]:checked').map(c => +c.dataset.rm);
+  const d = ($('input[name=subDefault]:checked') || {}).value || 'keep';
+  const def = d === 'keep' ? {} : d === 'off' ? { type: 'off' } : { type: d.split(':')[0], index: +d.split(':')[1] };
+  if (def.type === 'old' && remove.includes(def.index)) throw new Error('যেটা মুছছেন সেটাকে ডিফল্ট করা যাবে না');
+  if ($('#subReplace').checked && !confirm('আসল ভিডিও ফাইলটা বদলে যাবে। চালিয়ে যাবেন?')) return;
+  await post('/api/subs/edit', { path: subVideo, remove, add: subNew.map(n => ({ path: n.path, lang: n.lang === 'und' ? '' : n.lang, title: n.title })),
+    default: def, replace: $('#subReplace').checked });
+  closeSubs();
+  toast('সাবটাইটেলের কাজ শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন');
+  tick();
+});
+$('#subBurn').onclick = () => run(async () => {
+  const v = $('#subBurnSrc').value;
+  if (!v) throw new Error('আগে একটা সাবটাইটেল যোগ করুন');
+  const [type, ...rest] = v.split(':');
+  const val = rest.join(':');
+  await post('/api/subs/burn', { path: subVideo, quality: $('#subBurnQ').value,
+    source: type === 'track' ? { type, index: +val } : { type, path: val } });
+  closeSubs();
+  toast('সাবটাইটেল বসানো শুরু হয়েছে। অনেক সময় লাগতে পারে, "ট্রান্সফার" ট্যাবে progress দেখুন');
+  tick();
+});
 
 // ---------- polling
 let busy = false;
