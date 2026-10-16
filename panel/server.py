@@ -719,6 +719,8 @@ def rclone_cmd(*args):
 def ytdlp_job(url, folder="", quality="best", playlist=False, subs=""):
     if not shutil.which("yt-dlp"):
         raise ApiError(500, "yt-dlp ইনস্টল নেই")
+    if not url.startswith(("http://", "https://")):
+        raise ApiError(400, "ভিডিও লিংক http/https হতে হবে")
     dest = local_path(folder)
     os.makedirs(dest, exist_ok=True)
     cmd = ["yt-dlp", "--newline", "--no-colors", "-P", dest, "-o", "%(title).150B [%(id)s].%(ext)s"]
@@ -730,7 +732,7 @@ def ytdlp_job(url, folder="", quality="best", playlist=False, subs=""):
             if not SUB_LANGS_RE.match(subs):
                 raise ApiError(400, "সাবটাইটেলের ভাষা এভাবে লিখুন: bn,en")
             cmd += ["--write-subs", "--write-auto-subs", "--sub-langs", subs, "--embed-subs"]
-    cmd += ["--yes-playlist" if playlist else "--no-playlist", url]
+    cmd += ["--yes-playlist" if playlist else "--no-playlist", "--", url]
     return start_job("🎬 %s" % url[:80], cmd, parse_ytdlp, kind="video")
 
 
@@ -1248,19 +1250,47 @@ def api_rss_check(h):
     return {"added": rss_check(), "status": RSS_STATUS}
 
 
+# Where the options dict sits in each method's params (the panel strips the
+# secret, so these are 0-based on the client-sent params). addUri/addTorrent let
+# the caller pick a download directory, so pin it inside ROOT and keep "out" a
+# plain filename -- otherwise a non-admin could make aria2 write anywhere it can
+# (e.g. overwrite /etc/aria2/panel.json and take over the panel).
+ARIA2_OPT_INDEX = {
+    "aria2.addUri": 1, "aria2.addTorrent": 2, "aria2.addMetalink": 1,
+    "aria2.changeOption": 1, "aria2.changeGlobalOption": 0,
+}
+
+
+def sanitize_aria2_options(method, params):
+    idx = ARIA2_OPT_INDEX.get(method)
+    if idx is None or idx >= len(params) or not isinstance(params[idx], dict):
+        return
+    opts = params[idx]
+    if "dir" in opts:
+        d = os.path.realpath(str(opts["dir"]))
+        if d != ROOT and not d.startswith(ROOT + os.sep):
+            raise ApiError(400, "ভুল ডাউনলোড ফোল্ডার")
+        opts["dir"] = d
+    if "out" in opts and ("/" in str(opts["out"]) or str(opts["out"]) in ("", ".", "..")):
+        raise ApiError(400, "ভুল ফাইলের নাম")
+
+
 @route("POST", "/api/aria2", role="viewer")
 def api_aria2(h):
     body = h.json()
     method = body.get("method", "")
     params = body.get("params") or []
-    if method == "system.multicall":
-        methods = [str(c.get("methodName", "")) for c in (params[0] if params else [])]
-    else:
-        methods = [method]
+    calls = (params[0] if params else []) if method == "system.multicall" else None
+    methods = [str(c.get("methodName", "")) for c in calls] if calls is not None else [method]
     if not all(m.startswith("aria2.") for m in methods):
         raise ApiError(400, "এই কমান্ড চলবে না")
     if ROLES[h.role] < ROLES["user"] and not all(m in ARIA2_READ for m in methods):
         raise ApiError(403, "অনুমতি নেই")
+    if calls is not None:
+        for c in calls:
+            sanitize_aria2_options(str(c.get("methodName", "")), c.get("params") or [])
+    else:
+        sanitize_aria2_options(method, params)
     return {"result": aria2_rpc(method, params)}
 
 
@@ -1745,6 +1775,7 @@ def api_cloud_download(h):
     name = rel.rsplit("/", 1)[-1]
     h.send_response(200)
     h.send_header("Content-Type", mimetypes.guess_type(name)[0] or "application/octet-stream")
+    h.send_header("X-Content-Type-Options", "nosniff")
     size = int(h.query.get("size") or 0)
     if size > 0:
         h.send_header("Content-Length", str(size))
@@ -2024,6 +2055,13 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-cache")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Content-Security-Policy",
+                         "default-src 'self'; img-src 'self' data:; "
+                         "style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; "
+                         "connect-src 'self'; media-src 'self'; object-src 'none'; "
+                         "base-uri 'none'; frame-ancestors 'none'; form-action 'self'")
         self.end_headers()
         self.sent = True
         if self.command != "HEAD":
@@ -2060,13 +2098,18 @@ class Handler(BaseHTTPRequestHandler):
                 base = os.path.dirname(p)
                 if os.path.isdir(p):
                     for dirpath, dirs, files in os.walk(p):
+                        # Never follow symlinks out of ROOT (e.g. links planted by a
+                        # malicious archive): skip linked sub-dirs and linked files.
+                        dirs[:] = [d for d in dirs if not os.path.islink(os.path.join(dirpath, d))]
                         for fname in sorted(files):
                             if fname.endswith(HIDDEN_SUFFIXES):
                                 continue
                             full = os.path.join(dirpath, fname)
+                            if os.path.islink(full):
+                                continue
                             if os.path.isfile(full):
                                 zf.write(full, os.path.relpath(full, base))
-                else:
+                elif not os.path.islink(p):
                     zf.write(p, os.path.basename(p))
 
     def serve_file(self, path, inline, cache=0):
@@ -2088,8 +2131,15 @@ class Handler(BaseHTTPRequestHandler):
                 return
             status = 206
         name = os.path.basename(path)
+        ctype = mimetypes.guess_type(name)[0] or "application/octet-stream"
+        # Don't let the browser run an untrusted upload as active content in the
+        # panel's origin; nosniff also stops an octet-stream being sniffed as HTML.
+        if inline and ctype in ("text/html", "application/xhtml+xml", "image/svg+xml",
+                                "text/xml", "application/xml"):
+            inline = False
         self.send_response(status)
-        self.send_header("Content-Type", mimetypes.guess_type(name)[0] or "application/octet-stream")
+        self.send_header("Content-Type", ctype)
+        self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Content-Length", str(end - start + 1))
         self.send_header("Accept-Ranges", "bytes")
         if cache:
