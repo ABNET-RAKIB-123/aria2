@@ -1331,7 +1331,9 @@ def api_search(h):
     if not words:
         raise ApiError(400, "কী খুঁজবেন লিখুন")
     results = []
+    deadline = time.time() + 8
     for dirpath, dirs, files in os.walk(ROOT):
+        dirs[:] = [d for d in dirs if not os.path.islink(os.path.join(dirpath, d))]
         for name in dirs + files:
             if name.endswith(HIDDEN_SUFFIXES) or not all(w in name.lower() for w in words):
                 continue
@@ -1345,6 +1347,8 @@ def api_search(h):
                             "size": 0 if is_dir else st.st_size, "mtime": int(st.st_mtime)})
             if len(results) >= 300:
                 return {"items": results, "truncated": True}
+        if time.time() > deadline:
+            return {"items": results, "truncated": True}
     return {"items": results, "truncated": False}
 
 
@@ -1462,6 +1466,33 @@ def api_rename(h):
         raise ApiError(409, "এই নামে আগে থেকেই আছে")
     os.rename(src, dest)
     return {"ok": True}
+
+
+@route("POST", "/api/fs/move")
+def api_move(h):
+    """Move or copy files/folders to another folder inside the download root."""
+    body = h.json()
+    paths = body.get("paths") or ([body["path"]] if body.get("path") else [])
+    dest_dir = local_path(clean_folder(body.get("dest")))
+    os.makedirs(dest_dir, exist_ok=True)
+    copy = bool(body.get("copy"))
+    done = 0
+    for rel in paths:
+        src = local_path(rel)
+        if src == ROOT:
+            raise ApiError(400, "মূল ফোল্ডার সরানো যাবে না")
+        target = unique_path(os.path.join(dest_dir, os.path.basename(src)))
+        if copy:
+            if os.path.isdir(src):
+                shutil.copytree(src, target, symlinks=True)
+            else:
+                shutil.copy2(src, target)
+        else:
+            if os.path.isdir(src) and (dest_dir == src or dest_dir.startswith(src + os.sep)):
+                raise ApiError(400, "ফোল্ডারকে তার নিজের ভেতরে সরানো যাবে না")
+            shutil.move(src, target)
+        done += 1
+    return {"ok": True, "count": done}
 
 
 @route("POST", "/api/fs/delete")
@@ -1947,6 +1978,23 @@ class ZipOut:
         pass
 
 
+CSP = ("default-src 'self'; img-src 'self' data:; "
+       "style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; "
+       "connect-src 'self'; media-src 'self'; object-src 'none'; "
+       "base-uri 'none'; frame-ancestors 'none'; form-action 'self'")
+
+# URL path -> (filename beside server.py, Content-Type, Cache-Control)
+STATIC_FILES = {
+    "/": ("index.html", "text/html; charset=utf-8", "no-cache"),
+    "/index.html": ("index.html", "text/html; charset=utf-8", "no-cache"),
+    "/app.css": ("app.css", "text/css; charset=utf-8", "no-cache"),
+    "/app.js": ("app.js", "application/javascript; charset=utf-8", "no-cache"),
+    "/sw.js": ("sw.js", "application/javascript; charset=utf-8", "no-cache"),
+    "/manifest.webmanifest": ("manifest.webmanifest", "application/manifest+json; charset=utf-8", "no-cache"),
+    "/icon.svg": ("icon.svg", "image/svg+xml", "public, max-age=86400"),
+}
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "aria2-panel"
 
@@ -1973,8 +2021,8 @@ class Handler(BaseHTTPRequestHandler):
         self.query_all = urllib.parse.parse_qs(url.query)
         self.query = {k: v[0] for k, v in self.query_all.items()}
         try:
-            if method == "GET" and url.path in ("/", "/index.html"):
-                return self.serve_static("index.html")
+            if method == "GET" and url.path in STATIC_FILES:
+                return self.serve_static(url.path)
             if method == "GET" and url.path.startswith("/d/"):
                 return self.serve_share(url.path)
             entry = ROUTES.get((method, url.path))
@@ -2048,20 +2096,20 @@ class Handler(BaseHTTPRequestHandler):
         if self.command != "HEAD":
             self.wfile.write(body)
 
-    def serve_static(self, name):
-        with open(os.path.join(STATIC_DIR, name), "rb") as f:
+    def serve_static(self, route):
+        fname, ctype, cache = STATIC_FILES[route]
+        with open(os.path.join(STATIC_DIR, fname), "rb") as f:
             body = f.read()
         self.send_response(200)
-        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Cache-Control", cache)
         self.send_header("X-Content-Type-Options", "nosniff")
-        self.send_header("X-Frame-Options", "DENY")
-        self.send_header("Content-Security-Policy",
-                         "default-src 'self'; img-src 'self' data:; "
-                         "style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; "
-                         "connect-src 'self'; media-src 'self'; object-src 'none'; "
-                         "base-uri 'none'; frame-ancestors 'none'; form-action 'self'")
+        if fname == "index.html":
+            self.send_header("X-Frame-Options", "DENY")
+            self.send_header("Content-Security-Policy", CSP)
+        if route == "/sw.js":
+            self.send_header("Service-Worker-Allowed", "/")
         self.end_headers()
         self.sent = True
         if self.command != "HEAD":

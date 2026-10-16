@@ -300,6 +300,11 @@ fetch_file() {
 }
 fetch_file panel/server.py "${PANEL_DIR}/server.py"
 fetch_file panel/index.html "${PANEL_DIR}/index.html"
+fetch_file panel/app.css "${PANEL_DIR}/app.css"
+fetch_file panel/app.js "${PANEL_DIR}/app.js"
+fetch_file panel/sw.js "${PANEL_DIR}/sw.js"
+fetch_file panel/manifest.webmanifest "${PANEL_DIR}/manifest.webmanifest"
+fetch_file panel/icon.svg "${PANEL_DIR}/icon.svg"
 fetch_file aria2-panel /usr/local/bin/aria2-panel
 chmod 755 /usr/local/bin/aria2-panel
 

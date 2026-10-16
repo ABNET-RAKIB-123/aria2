@@ -1,0 +1,15 @@
+{
+  "name": "aria2 Download Panel",
+  "short_name": "Downloads",
+  "description": "aria2 web panel — downloads, server files and cloud storage",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f4f6fa",
+  "theme_color": "#2563eb",
+  "lang": "bn",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
