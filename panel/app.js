@@ -107,7 +107,7 @@ const TR = {
   'সাবটাইটেলের কাজ শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন': 'Subtitle task started, see the Transfers tab',
   'সাবটাইটেল বসানো শুরু হয়েছে। অনেক সময় লাগতে পারে, "ট্রান্সফার" ট্যাবে progress দেখুন':
     'Burn-in started. It can take a while; watch progress in the Transfers tab',
-  'অজানা': 'Unknown',
+  'অজানা': 'Unknown', 'লাগল': 'Took',
 };
 const t = s => (lang === 'en' && TR[s] != null) ? TR[s] : s;
 function applyStatic() {
@@ -150,6 +150,12 @@ function fmtEta(s) {
   if (!isFinite(s) || s <= 0) return '-';
   const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = Math.floor(s % 60);
   return h ? `${h}h ${m}m` : m ? `${m}m ${sec}s` : `${sec}s`;
+}
+function fmtDur(s) {
+  s = Math.round(s);
+  if (s < 60) return `${s}s`;
+  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
+  return h ? `${h}h ${m}m` : `${m}m ${sec}s`;
 }
 function fmtDate(t) {
   const d = typeof t === 'number' ? new Date(t * 1000) : new Date(t);
@@ -324,6 +330,7 @@ async function loadDownloads() {
   const n = act.length + wait.length;
   $('#bDl').textContent = n; $('#bDl').classList.toggle('hidden', !n);
   if (tab !== 'downloads') return;
+  const times = (await api('/api/dltimes').catch(() => ({}))).times || {};
   const all = [...act, ...wait, ...stop.slice().reverse()];
   if (!all.length) { $('#dlList').innerHTML = `<div class="empty">${t('কোনো ডাউনলোড নেই')}</div>`; return; }
   const edit = can('user');
@@ -337,6 +344,7 @@ async function loadDownloads() {
       if (d.bittorrent) meta.push(`${t('সিডার ')}${d.numSeeders}`);
     }
     if (d.errorMessage) meta.push(d.errorMessage);
+    if (times[d.gid] != null) meta.push(`⏱ ${t('লাগল')} ${fmtDur(times[d.gid])}`);
     const btns = [];
     if (edit) {
       if (d.status === 'active' || d.status === 'waiting') btns.push(`<button class="btn sm" data-a="pause" data-g="${d.gid}">⏸</button>`);

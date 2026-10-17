@@ -804,6 +804,7 @@ def add_links(urls, target="server", folder="", quality="best", playlist=False, 
 # ---------------------------------------------------------------- background monitor
 
 MON = {"sched": None, "disk_low": False, "tunnel": None}
+DL_TIMES = {}  # gid -> {"start": epoch, "elapsed": seconds taken once complete}
 
 
 def autoupload(d, st):
@@ -827,6 +828,9 @@ def autoupload(d, st):
 def on_download_stopped(d, st):
     name = dl_name(d)
     if d["status"] == "complete" and not d.get("followedBy"):
+        rec = DL_TIMES.get(d["gid"])
+        if rec and "elapsed" not in rec:
+            rec["elapsed"] = max(0, time.time() - rec["start"])
         notify("✅ ডাউনলোড শেষ: %s (%s)" % (name, fmt_size(d.get("totalLength"))))
         autoupload(d, st)
     elif d["status"] == "error":
@@ -903,6 +907,18 @@ def monitor_loop():
             pass
         except Exception:
             traceback.print_exc()
+        try:  # record per-download start times (non-critical, best-effort)
+            live = [d["gid"] for d in aria2_rpc("aria2.tellActive", [["gid"]])]
+            live += [d["gid"] for d in aria2_rpc("aria2.tellWaiting", [0, 1000, ["gid"]])]
+            now = time.time()
+            for gid in live:
+                DL_TIMES.setdefault(gid, {"start": now})
+            if seen is not None:
+                keep = seen | set(live)
+                for gid in [g for g in DL_TIMES if g not in keep]:
+                    DL_TIMES.pop(gid, None)
+        except Exception:
+            pass
         for every, fn, args in ((2, maintenance, (st,)), (12, watch_tunnel, ())):
             if tick % every == 0:
                 try:
@@ -1185,6 +1201,11 @@ def api_info(h):
                   "archive": bool(shutil.which("7zz") or shutil.which("7z"))},
         "server_time": int(time.time()),
     }
+
+
+@route("GET", "/api/dltimes", role="viewer")
+def api_dltimes(h):
+    return {"times": {g: int(r["elapsed"]) for g, r in DL_TIMES.items() if "elapsed" in r}}
 
 
 @route("POST", "/api/settings", role="admin")
