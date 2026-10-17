@@ -17,13 +17,13 @@
 
 <!-- Login -->
 <section id="login" class="card hidden">
-  <h2>🔐 লগইন</h2>
+  <h2 data-i18n="🔐 Login">🔐 লগইন</h2>
   <form id="loginForm">
-    <label class="small">ইউজারনেম</label>
+    <label class="small" data-i18n="Username">ইউজারনেম</label>
     <input type="text" id="loginUser" autocomplete="username" placeholder="admin" autocapitalize="off">
-    <label class="small mt">পাসওয়ার্ড</label>
+    <label class="small mt" data-i18n="Password">পাসওয়ার্ড</label>
     <input type="password" id="loginPass" autocomplete="current-password" required>
-    <div class="row mt"><button class="btn primary grow" type="submit">লগইন</button></div>
+    <div class="row mt"><button class="btn primary grow" type="submit" data-i18n="Log in">লগইন</button></div>
   </form>
 </section>
 
@@ -34,18 +34,19 @@
     <div class="stats">
       <span>⬇ <b id="stDown">0 B/s</b></span>
       <span>⬆ <b id="stUp">0 B/s</b></span>
-      <span>💾 খালি <b id="stDisk">-</b></span>
+      <span data-i18n="💾 Free <b id='stDisk'>-</b>">💾 খালি <b id="stDisk">-</b></span>
       <span>👤 <b id="stUser">-</b></span>
     </div>
-    <button id="themeToggle" class="btn sm" title="থিম বদলাও" aria-label="theme">🌓</button>
+    <button id="langToggle" class="btn sm" title="ভাষা / language" aria-label="language">EN</button>
+    <button id="themeToggle" class="btn sm" title="থিম বদলাও" data-i18n-title="Theme" aria-label="theme">🌓</button>
   </div>
   <nav id="nav">
-    <button data-tab="downloads" class="active">⬇ ডাউনলোড <span class="badge hidden" id="bDl"></span></button>
-    <button data-tab="files">📁 ফাইল</button>
+    <button data-tab="downloads" class="active" data-i18n="⬇ Download <span class='badge hidden' id='bDl'></span>">⬇ ডাউনলোড <span class="badge hidden" id="bDl"></span></button>
+    <button data-tab="files" data-i18n="📁 Files">📁 ফাইল</button>
     <button data-tab="cloud">☁ Cloud</button>
-    <button data-tab="jobs">🔄 ট্রান্সফার <span class="badge hidden" id="bJobs"></span></button>
+    <button data-tab="jobs" data-i18n="🔄 Transfers <span class='badge hidden' id='bJobs'></span>">🔄 ট্রান্সফার <span class="badge hidden" id="bJobs"></span></button>
     <button data-tab="rss" data-role="admin">📡 RSS</button>
-    <button data-tab="settings">⚙ সেটিং</button>
+    <button data-tab="settings" data-i18n="⚙ Settings">⚙ সেটিং</button>
   </nav>
 </header>
 
@@ -55,57 +56,57 @@
 <!-- Downloads -->
 <section id="tab-downloads">
   <div class="card" data-role="user">
-    <h2>➕ নতুন ডাউনলোড</h2>
-    <label class="small">লিংক দিন (প্রতি লাইনে একটা): Direct link, Magnet, YouTube/Facebook ভিডিও, Google Drive শেয়ার লিংক</label>
+    <h2 data-i18n="➕ New download">➕ নতুন ডাউনলোড</h2>
+    <label class="small" data-i18n="Enter links (one per line): direct link, magnet, YouTube/Facebook video, Google Drive share link">লিংক দিন (প্রতি লাইনে একটা): Direct link, Magnet, YouTube/Facebook ভিডিও, Google Drive শেয়ার লিংক</label>
     <textarea id="dlLinks" placeholder="https://example.com/file.zip&#10;magnet:?xt=urn:btih:...&#10;https://youtu.be/...&#10;https://drive.google.com/file/d/..."></textarea>
     <div class="row mt">
       <div class="grow">
-        <label class="small">কোথায় / কীভাবে?</label>
+        <label class="small" data-i18n="Where / how?">কোথায় / কীভাবে?</label>
         <select id="dlTarget">
-          <option value="server">সার্ভারে (ভিডিও সাইট হলে নিজে থেকে yt-dlp)</option>
-          <option value="video">ভিডিও সাইট হিসেবে (yt-dlp, ১০০০+ সাইট)</option>
-          <option value="cloud">সরাসরি Cloud-এ (সার্ভারে জায়গা লাগবে না)</option>
+          <option value="server" data-i18n="To server (auto yt-dlp for video sites)">সার্ভারে (ভিডিও সাইট হলে নিজে থেকে yt-dlp)</option>
+          <option value="video" data-i18n="As a video site (yt-dlp, 1000+ sites)">ভিডিও সাইট হিসেবে (yt-dlp, ১০০০+ সাইট)</option>
+          <option value="cloud" data-i18n="Straight to cloud (no server space needed)">সরাসরি Cloud-এ (সার্ভারে জায়গা লাগবে না)</option>
         </select>
       </div>
       <div class="grow hidden" id="dlRemoteBox">
-        <label class="small">Cloud একাউন্ট</label>
+        <label class="small" data-i18n="Cloud account">Cloud একাউন্ট</label>
         <select id="dlRemote" class="remoteSelect"></select>
       </div>
       <div class="grow" id="dlQualityBox">
-        <label class="small">ভিডিও কোয়ালিটি (শুধু ভিডিও সাইটের জন্য)</label>
+        <label class="small" data-i18n="Video quality (video sites only)">ভিডিও কোয়ালিটি (শুধু ভিডিও সাইটের জন্য)</label>
         <select id="dlQuality">
-          <option value="best">সবচেয়ে ভালো</option>
-          <option value="1080">1080p পর্যন্ত</option>
-          <option value="720">720p পর্যন্ত</option>
-          <option value="480">480p পর্যন্ত (কম ডাটা)</option>
-          <option value="audio">শুধু অডিও (MP3)</option>
+          <option value="best" data-i18n="Best">সবচেয়ে ভালো</option>
+          <option value="1080" data-i18n="Up to 1080p">1080p পর্যন্ত</option>
+          <option value="720" data-i18n="Up to 720p">720p পর্যন্ত</option>
+          <option value="480" data-i18n="Up to 480p (less data)">480p পর্যন্ত (কম ডাটা)</option>
+          <option value="audio" data-i18n="Audio only (MP3)">শুধু অডিও (MP3)</option>
         </select>
       </div>
       <div class="grow">
         <label class="small" id="dlFolderLabel">ফোল্ডার (খালি = মূল ফোল্ডার)</label>
-        <input type="text" id="dlFolder" placeholder="যেমন: Movies">
+        <input type="text" id="dlFolder" placeholder="যেমন: Movies" data-i18n-ph="e.g. Movies">
       </div>
     </div>
     <div class="row mt">
-      <label class="switch" id="dlPlaylistBox"><input type="checkbox" id="dlPlaylist"> প্লেলিস্টের সব ভিডিও নামাও</label>
-      <label class="switch" id="dlSubsBox"><input type="checkbox" id="dlSubs"> সাবটাইটেল সহ, ভাষা:
+      <label class="switch" id="dlPlaylistBox"><input type="checkbox" id="dlPlaylist"> <span data-i18n="Download the whole playlist">প্লেলিস্টের সব ভিডিও নামাও</span></label>
+      <label class="switch" id="dlSubsBox"><input type="checkbox" id="dlSubs"> <span data-i18n="With subtitles, language:">সাবটাইটেল সহ, ভাষা:</span>
         <input type="text" id="dlSubsLang" value="bn,en" style="width:90px;padding:4px 8px"></label>
     </div>
     <div class="row mt">
-      <button class="btn primary" id="dlAdd">⬇ ডাউনলোড শুরু</button>
-      <label class="btn">📄 .torrent ফাইল<input type="file" id="dlTorrent" accept=".torrent" multiple hidden></label>
+      <button class="btn primary" id="dlAdd" data-i18n="⬇ Start download">⬇ ডাউনলোড শুরু</button>
+      <label class="btn"><span data-i18n="📄 .torrent file">📄 .torrent ফাইল</span><input type="file" id="dlTorrent" accept=".torrent" multiple hidden></label>
     </div>
   </div>
 
   <div class="card">
     <div class="row" style="margin-bottom:8px">
-      <h2 style="margin:0" class="grow">📋 ডাউনলোড তালিকা</h2>
-      <button class="btn sm" id="dlPauseAll" data-role="user">⏸ সব থামাও</button>
-      <button class="btn sm" id="dlResumeAll" data-role="user">▶ সব চালাও</button>
-      <button class="btn sm" id="dlPurge" data-role="user">🧹 শেষগুলো মুছো</button>
+      <h2 style="margin:0" class="grow" data-i18n="📋 Downloads">📋 ডাউনলোড তালিকা</h2>
+      <button class="btn sm" id="dlPauseAll" data-role="user" data-i18n="⏸ Pause all">⏸ সব থামাও</button>
+      <button class="btn sm" id="dlResumeAll" data-role="user" data-i18n="▶ Resume all">▶ সব চালাও</button>
+      <button class="btn sm" id="dlPurge" data-role="user" data-i18n="🧹 Clear finished">🧹 শেষগুলো মুছো</button>
     </div>
     <div class="list" id="dlList"><div class="empty">কোনো ডাউনলোড নেই</div></div>
-    <p class="muted">ভিডিও (yt-dlp), zip খোলা আর Cloud-এর কাজ <b>🔄 ট্রান্সফার</b> ট্যাবে দেখায়।</p>
+    <p class="muted" data-i18n="Video (yt-dlp), extraction and cloud tasks show in the <b>🔄 Transfers</b> tab.">ভিডিও (yt-dlp), zip খোলা আর Cloud-এর কাজ <b>🔄 ট্রান্সফার</b> ট্যাবে দেখায়।</p>
   </div>
 </section>
 
@@ -113,33 +114,33 @@
 <section id="tab-files" class="hidden">
   <div class="card">
     <div class="row" style="margin-bottom:10px">
-      <h2 style="margin:0" class="grow">📁 সার্ভারের ফাইল</h2>
-      <label class="btn primary" data-role="user">⬆ আপলোড<input type="file" id="fUpload" multiple hidden></label>
-      <button class="btn" id="fMkdir" data-role="user">📂 নতুন ফোল্ডার</button>
-      <button class="btn" id="fView" title="লিস্ট / গ্রিড">▦</button>
+      <h2 style="margin:0" class="grow" data-i18n="📁 Server files">📁 সার্ভারের ফাইল</h2>
+      <label class="btn primary" data-role="user"><span data-i18n="⬆ Upload">⬆ আপলোড</span><input type="file" id="fUpload" multiple hidden></label>
+      <button class="btn" id="fMkdir" data-role="user" data-i18n="📂 New folder">📂 নতুন ফোল্ডার</button>
+      <button class="btn" id="fView" title="লিস্ট / গ্রিড" data-i18n-title="List / grid">▦</button>
       <button class="btn" id="fRefresh">🔄</button>
     </div>
     <div class="row">
-      <input type="search" id="fSearch" class="grow" placeholder="🔍 এই ফোল্ডারে খুঁজুন… (Enter চাপলে সব ফোল্ডারে)">
+      <input type="search" id="fSearch" class="grow" placeholder="🔍 এই ফোল্ডারে খুঁজুন… (Enter চাপলে সব ফোল্ডারে)" data-i18n-ph="🔍 Search this folder… (Enter searches everywhere)">
       <select id="fSort" style="width:auto">
-        <option value="name">নাম</option>
-        <option value="date">নতুন আগে</option>
-        <option value="size">বড় আগে</option>
+        <option value="name" data-i18n="Name">নাম</option>
+        <option value="date" data-i18n="Newest first">নতুন আগে</option>
+        <option value="size" data-i18n="Largest first">বড় আগে</option>
       </select>
     </div>
-    <div class="drop mt" id="fDrop" data-role="user">এখানে ফাইল টেনে এনে ছাড়ুন (drag &amp; drop), সার্ভারে আপলোড হবে</div>
+    <div class="drop mt" id="fDrop" data-role="user" data-i18n="Drag &amp; drop files here to upload to the server">এখানে ফাইল টেনে এনে ছাড়ুন (drag &amp; drop), সার্ভারে আপলোড হবে</div>
     <div class="list" id="fUploads" style="margin-top:8px"></div>
     <div class="crumbs" id="fCrumbs" style="margin-top:12px"></div>
     <div class="bulk row hidden" id="fBulk">
       <b id="fBulkCount" class="grow"></b>
-      <button class="btn sm" data-bulk="zip">⬇ zip করে নামাও</button>
-      <button class="btn sm" data-bulk="cloud" data-role="user">☁ Cloud-এ পাঠাও</button>
-      <button class="btn sm" data-bulk="move" data-role="user">📦 সরাও</button>
-      <button class="btn sm" data-bulk="copy" data-role="user">⧉ কপি</button>
-      <button class="btn sm danger" data-bulk="delete" data-role="user">🗑 মুছো</button>
+      <button class="btn sm" data-bulk="zip" data-i18n="⬇ Download as zip">⬇ zip করে নামাও</button>
+      <button class="btn sm" data-bulk="cloud" data-role="user" data-i18n="☁ Send to cloud">☁ Cloud-এ পাঠাও</button>
+      <button class="btn sm" data-bulk="move" data-role="user" data-i18n="📦 Move">📦 সরাও</button>
+      <button class="btn sm" data-bulk="copy" data-role="user" data-i18n="⧉ Copy">⧉ কপি</button>
+      <button class="btn sm danger" data-bulk="delete" data-role="user" data-i18n="🗑 Delete">🗑 মুছো</button>
       <button class="btn sm" data-bulk="clear">✖</button>
     </div>
-    <div class="row muted" style="margin:4px 0"><label class="switch"><input type="checkbox" id="fSelectAll"> সব সিলেক্ট</label></div>
+    <div class="row muted" style="margin:4px 0"><label class="switch"><input type="checkbox" id="fSelectAll"> <span data-i18n="Select all">সব সিলেক্ট</span></label></div>
     <div id="fList"></div>
   </div>
 </section>
@@ -148,16 +149,16 @@
 <section id="tab-cloud" class="hidden">
   <div class="card">
     <div class="row">
-      <div class="grow"><label class="small">Cloud একাউন্ট</label><select id="cRemote" class="remoteSelect"></select></div>
-      <button class="btn" id="cAdd" data-role="admin">➕ নতুন একাউন্ট</button>
-      <button class="btn danger" id="cRemove" data-role="admin">✖ এই একাউন্ট সরাও</button>
+      <div class="grow"><label class="small" data-i18n="Cloud account">Cloud একাউন্ট</label><select id="cRemote" class="remoteSelect"></select></div>
+      <button class="btn" id="cAdd" data-role="admin" data-i18n="➕ New account">➕ নতুন একাউন্ট</button>
+      <button class="btn danger" id="cRemove" data-role="admin" data-i18n="✖ Remove this account">✖ এই একাউন্ট সরাও</button>
     </div>
   </div>
 
   <div class="card hidden" id="cConnect" data-role="admin">
-    <h2>☁ Cloud একাউন্ট কানেক্ট করুন</h2>
+    <h2 data-i18n="☁ Connect a cloud account">☁ Cloud একাউন্ট কানেক্ট করুন</h2>
     <div class="grow" style="max-width:320px">
-      <label class="small">কোন ধরনের?</label>
+      <label class="small" data-i18n="Which type?">কোন ধরনের?</label>
       <select id="cType">
         <option value="drive">Google Drive</option>
         <option value="dropbox">Dropbox</option>
@@ -167,7 +168,7 @@
     </div>
     <div id="cOauth" class="mt">
       <ol class="steps">
-        <li><button class="btn primary" id="cStart">🔑 লগইন লিংক তৈরি করো</button></li>
+        <li><button class="btn primary" id="cStart" data-i18n="🔑 Make a login link">🔑 লগইন লিংক তৈরি করো</button></li>
         <li class="hidden" id="cStep2">এই লিংক খুলে লগইন করে <b>Allow</b> দিন:<br>
           <a id="cLink" target="_blank" rel="noopener">লগইন পেজ খুলুন ↗</a></li>
         <li class="hidden" id="cStep3">এরপর একটা পেজ আসবে যেটা <b>খুলবে না</b> (127.0.0.1 ... লেখা)। এটাই স্বাভাবিক।
@@ -195,16 +196,16 @@
     </div>
   </div>
 
-  <div class="card hidden" id="cEmpty"><p class="muted">কোনো Cloud একাউন্ট কানেক্ট করা নেই। admin-কে বলুন কানেক্ট করতে।</p></div>
+  <div class="card hidden" id="cEmpty"><p class="muted" data-i18n="No cloud account connected. Ask an admin to connect one.">কোনো Cloud একাউন্ট কানেক্ট করা নেই। admin-কে বলুন কানেক্ট করতে।</p></div>
 
   <div class="card hidden" id="cMain">
     <div class="row" style="margin-bottom:10px">
       <h2 style="margin:0" class="grow"><span id="cTitle">☁</span> <span class="muted" id="cQuota"></span></h2>
-      <label class="btn primary" data-role="user">⬆ পিসি থেকে আপলোড<input type="file" id="cUpload" multiple hidden></label>
-      <button class="btn" id="cMkdir" data-role="user">📂 নতুন ফোল্ডার</button>
+      <label class="btn primary" data-role="user"><span data-i18n="⬆ Upload from PC">⬆ পিসি থেকে আপলোড</span><input type="file" id="cUpload" multiple hidden></label>
+      <button class="btn" id="cMkdir" data-role="user" data-i18n="📂 New folder">📂 নতুন ফোল্ডার</button>
       <button class="btn" id="cRefresh">🔄</button>
     </div>
-    <div class="drop" id="cDrop" data-role="user">এখানে ফাইল ছাড়ুন, সরাসরি Cloud-এ আপলোড হবে</div>
+    <div class="drop" id="cDrop" data-role="user" data-i18n="Drop files here to upload straight to the cloud">এখানে ফাইল ছাড়ুন, সরাসরি Cloud-এ আপলোড হবে</div>
     <div class="list" id="cUploads" style="margin-top:8px"></div>
     <div class="crumbs" id="cCrumbs" style="margin-top:12px"></div>
     <div class="list" id="cList"></div>
@@ -215,8 +216,8 @@
 <section id="tab-jobs" class="hidden">
   <div class="card">
     <div class="row" style="margin-bottom:8px">
-      <h2 style="margin:0" class="grow">🔄 ট্রান্সফার (ভিডিও, zip, Cloud)</h2>
-      <button class="btn sm" id="jClear" data-role="user">🧹 শেষগুলো মুছো</button>
+      <h2 style="margin:0" class="grow" data-i18n="🔄 Transfers (video, zip, cloud)">🔄 ট্রান্সফার (ভিডিও, zip, Cloud)</h2>
+      <button class="btn sm" id="jClear" data-role="user" data-i18n="🧹 Clear finished">🧹 শেষগুলো মুছো</button>
     </div>
     <div class="list" id="jList"><div class="empty">কোনো ট্রান্সফার নেই</div></div>
   </div>
@@ -225,114 +226,114 @@
 <!-- RSS -->
 <section id="tab-rss" class="hidden">
   <div class="card">
-    <h2>📡 RSS অটো ডাউনলোড</h2>
+    <h2 data-i18n="📡 RSS auto-download">📡 RSS অটো ডাউনলোড</h2>
     <p class="muted">টরেন্ট সাইট বা অন্য জায়গার RSS লিংক দিন। নতুন আইটেম এলে (ফিল্টারের সাথে মিললে) নিজে থেকে নামবে।
       প্রথমবার পুরনোগুলো বাদ দেওয়া হয়, শুধু এরপর থেকে আসা নতুনগুলো নামে।</p>
     <div class="row">
-      <div class="grow"><label class="small">RSS লিংক</label><input type="url" id="rUrl" placeholder="https://example.com/rss"></div>
-      <div class="grow"><label class="small">নাম (ঐচ্ছিক)</label><input type="text" id="rName" placeholder="যেমন: My Show"></div>
-      <div class="grow"><label class="small">ফিল্টার (ঐচ্ছিক)</label><input type="text" id="rFilter" placeholder="show 1080p -720p"></div>
+      <div class="grow"><label class="small" data-i18n="RSS link">RSS লিংক</label><input type="url" id="rUrl" placeholder="https://example.com/rss"></div>
+      <div class="grow"><label class="small" data-i18n="Name (optional)">নাম (ঐচ্ছিক)</label><input type="text" id="rName" placeholder="যেমন: My Show"></div>
+      <div class="grow"><label class="small" data-i18n="Filter (optional)">ফিল্টার (ঐচ্ছিক)</label><input type="text" id="rFilter" placeholder="show 1080p -720p"></div>
     </div>
     <p class="muted">ফিল্টার: সব শব্দ নামে থাকতে হবে। শব্দের আগে <code>-</code> দিলে ওই শব্দ থাকলে বাদ। খালি রাখলে সব নামবে।</p>
-    <button class="btn primary" id="rAdd">➕ যোগ করো</button>
+    <button class="btn primary" id="rAdd" data-i18n="➕ Add">➕ যোগ করো</button>
   </div>
   <div class="card">
     <div class="row" style="margin-bottom:8px">
-      <h2 style="margin:0" class="grow">ফিড তালিকা</h2>
-      <button class="btn sm" id="rCheck">🔄 এখনই চেক করো</button>
+      <h2 style="margin:0" class="grow" data-i18n="Feeds">ফিড তালিকা</h2>
+      <button class="btn sm" id="rCheck" data-i18n="🔄 Check now">🔄 এখনই চেক করো</button>
     </div>
     <div class="list" id="rList"><div class="empty">কোনো ফিড নেই</div></div>
     <div class="row mt">
-      <div class="grow"><label class="small">কোন ফোল্ডারে নামবে</label><input type="text" id="rDest"></div>
-      <div class="grow"><label class="small">কত মিনিট পরপর চেক (কমপক্ষে ৫)</label><input type="number" id="rInterval" min="5"></div>
+      <div class="grow"><label class="small" data-i18n="Download to which folder">কোন ফোল্ডারে নামবে</label><input type="text" id="rDest"></div>
+      <div class="grow"><label class="small" data-i18n="Check every N minutes (min 5)">কত মিনিট পরপর চেক (কমপক্ষে ৫)</label><input type="number" id="rInterval" min="5"></div>
     </div>
-    <button class="btn primary mt" id="rSaveSettings">💾 সেভ</button>
+    <button class="btn primary mt" id="rSaveSettings" data-i18n="💾 Save">💾 সেভ</button>
   </div>
 </section>
 
 <!-- Settings -->
 <section id="tab-settings" class="hidden">
   <div class="card">
-    <h2>👤 আমার একাউন্ট</h2>
+    <h2 data-i18n="👤 My account">👤 আমার একাউন্ট</h2>
     <p class="muted" id="sMe"></p>
     <div class="row">
-      <div class="grow"><label class="small">বর্তমান পাসওয়ার্ড</label><input type="password" id="pOld" autocomplete="current-password"></div>
-      <div class="grow"><label class="small">নতুন পাসওয়ার্ড (৮+ অক্ষর)</label><input type="password" id="pNew" autocomplete="new-password"></div>
+      <div class="grow"><label class="small" data-i18n="Current password">বর্তমান পাসওয়ার্ড</label><input type="password" id="pOld" autocomplete="current-password"></div>
+      <div class="grow"><label class="small" data-i18n="New password (8+ chars)">নতুন পাসওয়ার্ড (৮+ অক্ষর)</label><input type="password" id="pNew" autocomplete="new-password"></div>
     </div>
     <div class="row mt">
-      <button class="btn primary" id="pSave">পাসওয়ার্ড বদলাও</button>
-      <button class="btn danger" id="logout">🚪 লগআউট</button>
+      <button class="btn primary" id="pSave" data-i18n="Change password">পাসওয়ার্ড বদলাও</button>
+      <button class="btn danger" id="logout" data-i18n="🚪 Log out">🚪 লগআউট</button>
     </div>
   </div>
 
   <div class="card" data-role="admin">
-    <h2>🚀 স্পিড আর সময়</h2>
+    <h2 data-i18n="🚀 Speed and time">🚀 স্পিড আর সময়</h2>
     <div class="row">
-      <div class="grow"><label class="small">ডাউনলোড স্পিড লিমিট (KB/s, ০ = লিমিট নেই)</label><input type="number" id="sDown" min="0"></div>
-      <div class="grow"><label class="small">আপলোড (seeding) স্পিড লিমিট (KB/s, ০ = লিমিট নেই)</label><input type="number" id="sUp" min="0"></div>
+      <div class="grow"><label class="small" data-i18n="Download speed limit (KB/s, 0 = no limit)">ডাউনলোড স্পিড লিমিট (KB/s, ০ = লিমিট নেই)</label><input type="number" id="sDown" min="0"></div>
+      <div class="grow"><label class="small" data-i18n="Upload (seeding) speed limit (KB/s, 0 = no limit)">আপলোড (seeding) স্পিড লিমিট (KB/s, ০ = লিমিট নেই)</label><input type="number" id="sUp" min="0"></div>
     </div>
-    <h3>⏰ নির্দিষ্ট সময়ে ডাউনলোড</h3>
-    <label class="switch"><input type="checkbox" id="sSched"> শুধু এই সময়ের মধ্যে ডাউনলোড চলবে (বাকি সময় থেমে থাকবে)</label>
+    <h3 data-i18n="⏰ Download at set times">⏰ নির্দিষ্ট সময়ে ডাউনলোড</h3>
+    <label class="switch"><input type="checkbox" id="sSched"> <span data-i18n="Download only within this window (paused otherwise)">শুধু এই সময়ের মধ্যে ডাউনলোড চলবে (বাকি সময় থেমে থাকবে)</span></label>
     <div class="row mt">
-      <div class="grow"><label class="small">শুরু</label><input type="time" id="sStart"></div>
-      <div class="grow"><label class="small">শেষ</label><input type="time" id="sEnd"></div>
+      <div class="grow"><label class="small" data-i18n="Start">শুরু</label><input type="time" id="sStart"></div>
+      <div class="grow"><label class="small" data-i18n="End">শেষ</label><input type="time" id="sEnd"></div>
     </div>
     <p class="muted">সময় আপনার এই ডিভাইসের সময় অনুযায়ী ধরা হবে। রাতের ফ্রি ইন্টারনেট প্যাকেজের জন্য কাজে লাগে।</p>
-    <h3>💾 ডিস্ক রক্ষা</h3>
+    <h3 data-i18n="💾 Disk guard">💾 ডিস্ক রক্ষা</h3>
     <div class="row">
-      <div class="grow"><label class="small">খালি জায়গা এর কম হলে সব ডাউনলোড থামাও (GB, ০ = বন্ধ)</label><input type="number" id="sGuard" min="0" step="0.5"></div>
+      <div class="grow"><label class="small" data-i18n="Pause all downloads below this free space (GB, 0 = off)">খালি জায়গা এর কম হলে সব ডাউনলোড থামাও (GB, ০ = বন্ধ)</label><input type="number" id="sGuard" min="0" step="0.5"></div>
     </div>
-    <button class="btn primary mt" data-save="speed">💾 সেভ</button>
+    <button class="btn primary mt" data-save="speed" data-i18n="💾 Save">💾 সেভ</button>
   </div>
 
   <div class="card" data-role="admin">
-    <h2>🤖 অটো আপলোড</h2>
-    <label class="switch"><input type="checkbox" id="sAuto"> সার্ভারে ডাউনলোড শেষ হলেই Cloud-এ পাঠাও</label>
+    <h2 data-i18n="🤖 Auto upload">🤖 অটো আপলোড</h2>
+    <label class="switch"><input type="checkbox" id="sAuto"> <span data-i18n="Send to cloud as soon as a server download finishes">সার্ভারে ডাউনলোড শেষ হলেই Cloud-এ পাঠাও</span></label>
     <div class="row mt">
-      <div class="grow"><label class="small">কোন Cloud একাউন্টে</label><select id="sAutoRemote" class="remoteSelect"></select></div>
-      <div class="grow"><label class="small">কোন ফোল্ডারে</label><input type="text" id="sAutoDest"></div>
+      <div class="grow"><label class="small" data-i18n="To which cloud account">কোন Cloud একাউন্টে</label><select id="sAutoRemote" class="remoteSelect"></select></div>
+      <div class="grow"><label class="small" data-i18n="To which folder">কোন ফোল্ডারে</label><input type="text" id="sAutoDest"></div>
     </div>
-    <label class="switch mt"><input type="checkbox" id="sAutoMove"> আপলোডের পর সার্ভার থেকে মুছে ফেলো (জায়গা বাঁচাতে)</label>
-    <button class="btn primary mt" data-save="auto">💾 সেভ</button>
+    <label class="switch mt"><input type="checkbox" id="sAutoMove"> <span data-i18n="Delete from the server after upload (to save space)">আপলোডের পর সার্ভার থেকে মুছে ফেলো (জায়গা বাঁচাতে)</span></label>
+    <button class="btn primary mt" data-save="auto" data-i18n="💾 Save">💾 সেভ</button>
   </div>
 
   <div class="card" data-role="admin">
-    <h2>✈️ Telegram বট</h2>
+    <h2 data-i18n="✈️ Telegram bot">✈️ Telegram বট</h2>
     <ol class="steps muted">
       <li>Telegram-এ <b>@BotFather</b> খুলে <code>/newbot</code> পাঠান, নাম দিন। সে একটা <b>টোকেন</b> দেবে, নিচে বসান আর সেভ করুন।</li>
       <li>আপনার নতুন বটকে <code>/start</code> পাঠান। বট আপনার <b>Chat ID</b> বলে দেবে, নিচে বসিয়ে আবার সেভ করুন।</li>
       <li><b>পরীক্ষা</b> চাপুন। এরপর বটকে লিংক বা .torrent ফাইল পাঠালেই ডাউনলোড শুরু হবে।</li>
     </ol>
     <div class="row">
-      <div class="grow"><label class="small">বট টোকেন</label><input type="password" id="sTgToken" autocomplete="off" placeholder="123456:ABC..."></div>
+      <div class="grow"><label class="small" data-i18n="Bot token">বট টোকেন</label><input type="password" id="sTgToken" autocomplete="off" placeholder="123456:ABC..."></div>
       <div class="grow"><label class="small">Chat ID</label><input type="text" id="sTgChat" placeholder="123456789"></div>
     </div>
-    <label class="switch mt"><input type="checkbox" id="sTgNotify"> ডাউনলোড শেষ/ব্যর্থ হলে মেসেজ পাঠাও</label>
+    <label class="switch mt"><input type="checkbox" id="sTgNotify"> <span data-i18n="Message me when a download finishes/fails">ডাউনলোড শেষ/ব্যর্থ হলে মেসেজ পাঠাও</span></label>
     <div class="row mt">
-      <button class="btn primary" data-save="telegram">💾 সেভ</button>
-      <button class="btn" id="sTgTest">📨 পরীক্ষা</button>
+      <button class="btn primary" data-save="telegram" data-i18n="💾 Save">💾 সেভ</button>
+      <button class="btn" id="sTgTest" data-i18n="📨 Test">📨 পরীক্ষা</button>
     </div>
   </div>
 
   <div class="card" data-role="admin">
-    <h2>👥 ইউজার</h2>
+    <h2 data-i18n="👥 Users">👥 ইউজার</h2>
     <table class="simple" id="uTable"></table>
-    <h3>নতুন ইউজার / পাসওয়ার্ড বদলানো</h3>
+    <h3 data-i18n="New user / change password">নতুন ইউজার / পাসওয়ার্ড বদলানো</h3>
     <div class="row">
-      <div class="grow"><label class="small">ইউজারনেম (ইংরেজিতে)</label><input type="text" id="uName" autocapitalize="off" autocomplete="off"></div>
-      <div class="grow"><label class="small">পাসওয়ার্ড (পুরনো ইউজারের জন্য খালি = বদলাবে না)</label><input type="password" id="uPass" autocomplete="new-password"></div>
-      <div class="grow"><label class="small">অনুমতি</label>
+      <div class="grow"><label class="small" data-i18n="Username (English)">ইউজারনেম (ইংরেজিতে)</label><input type="text" id="uName" autocapitalize="off" autocomplete="off"></div>
+      <div class="grow"><label class="small" data-i18n="Password (empty = unchanged for an existing user)">পাসওয়ার্ড (পুরনো ইউজারের জন্য খালি = বদলাবে না)</label><input type="password" id="uPass" autocomplete="new-password"></div>
+      <div class="grow"><label class="small" data-i18n="Role">অনুমতি</label>
         <select id="uRole">
-          <option value="viewer">viewer: শুধু দেখা আর নামানো</option>
-          <option value="user" selected>user: ডাউনলোড, আপলোড, ফাইল ম্যানেজ</option>
-          <option value="admin">admin: সব কিছু (সেটিং সহ)</option>
+          <option value="viewer" data-i18n="viewer: view and download only">viewer: শুধু দেখা আর নামানো</option>
+          <option value="user" selected data-i18n="user: download, upload, manage files">user: ডাউনলোড, আপলোড, ফাইল ম্যানেজ</option>
+          <option value="admin" data-i18n="admin: everything (incl. settings)">admin: সব কিছু (সেটিং সহ)</option>
         </select></div>
     </div>
-    <button class="btn primary mt" id="uSave">💾 সেভ</button>
+    <button class="btn primary mt" id="uSave" data-i18n="💾 Save">💾 সেভ</button>
   </div>
 
   <div class="card" data-role="admin">
-    <h2>🌐 প্যানেলের লিংক (Cloudflare Tunnel)</h2>
+    <h2 data-i18n="🌐 Panel link (Cloudflare Tunnel)">🌐 প্যানেলের লিংক (Cloudflare Tunnel)</h2>
     <p id="sTunnel" class="muted"></p>
   </div>
   <p class="muted" id="sVersion"></p>
@@ -342,35 +343,35 @@
 
 <div class="modal-bg hidden" id="subModal">
   <div class="modal">
-    <div class="row"><h2 class="grow" style="margin:0">🎞 সাবটাইটেল</h2><button class="btn sm" id="subClose">✖</button></div>
+    <div class="row"><h2 class="grow" style="margin:0" data-i18n="🎞 Subtitles">🎞 সাবটাইটেল</h2><button class="btn sm" id="subClose">✖</button></div>
     <p class="muted" id="subFile"></p>
 
-    <h3>ভিডিওর ভেতরের সাবটাইটেল</h3>
+    <h3 data-i18n="Subtitles inside the video">ভিডিওর ভেতরের সাবটাইটেল</h3>
     <div class="list" id="subTracks"></div>
 
-    <h3>নতুন সাবটাইটেল যোগ করুন</h3>
+    <h3 data-i18n="Add a new subtitle">নতুন সাবটাইটেল যোগ করুন</h3>
     <div class="row">
       <label class="btn">⬆ পিসি থেকে (.srt / .ass / .vtt)<input type="file" id="subUpload" accept=".srt,.ass,.ssa,.vtt" hidden></label>
       <select id="subPick"></select>
-      <button class="btn" id="subPickAdd">➕ যোগ</button>
+      <button class="btn" id="subPickAdd" data-i18n="➕ Add">➕ যোগ</button>
     </div>
     <div class="list" id="subUploads"></div>
     <div class="list" id="subNew"></div>
 
     <div class="mt">
-      <label class="switch"><input type="radio" name="subDefault" value="keep" checked> ডিফল্ট সাবটাইটেল যেমন আছে থাকবে</label>
-      <label class="switch"><input type="radio" name="subDefault" value="off"> কোনোটাই ডিফল্ট না (প্লেয়ারে নিজে চালু করতে হবে)</label>
-      <label class="switch"><input type="checkbox" id="subReplace"> আসল ফাইল বদলে দাও (টিক না দিলে "[subs]" নামে নতুন ফাইল হবে)</label>
+      <label class="switch"><input type="radio" name="subDefault" value="keep" checked> <span data-i18n="Keep the default subtitle as is">ডিফল্ট সাবটাইটেল যেমন আছে থাকবে</span></label>
+      <label class="switch"><input type="radio" name="subDefault" value="off"> <span data-i18n="None default (turn on manually in the player)">কোনোটাই ডিফল্ট না (প্লেয়ারে নিজে চালু করতে হবে)</span></label>
+      <label class="switch"><input type="checkbox" id="subReplace"> <span data-i18n="Replace the original file (otherwise a new &quot;[subs]&quot; file is made)">আসল ফাইল বদলে দাও (টিক না দিলে "[subs]" নামে নতুন ফাইল হবে)</span></label>
     </div>
-    <div class="row mt"><button class="btn primary" id="subSave">💾 সেভ (দ্রুত, ভিডিওর কোয়ালিটি কমে না)</button></div>
+    <div class="row mt"><button class="btn primary" id="subSave" data-i18n="💾 Save (fast, no quality loss)">💾 সেভ (দ্রুত, ভিডিওর কোয়ালিটি কমে না)</button></div>
 
-    <h3>🔥 ছবির ভেতরে বসানো (burn-in)</h3>
+    <h3 data-i18n="🔥 Burn into the picture (burn-in)">🔥 ছবির ভেতরে বসানো (burn-in)</h3>
     <p class="muted">যেসব টিভি/প্লেয়ারে সাবটাইটেল চালু করা যায় না, বা Facebook-এ আপলোডের জন্য। পুরো ভিডিও নতুন করে বানাতে হয়, তাই অনেক সময় লাগে
       (ছোট সার্ভারে ২ ঘণ্টার মুভিতে ১ ঘণ্টা বা বেশি)। "[hardsub]" নামে নতুন MP4 তৈরি হবে, আসল ফাইল থাকবে।</p>
     <div class="row">
       <select id="subBurnSrc" class="grow" style="width:100%"></select>
-      <select id="subBurnQ"><option value="fast">দ্রুত</option><option value="good">ভালো কোয়ালিটি (আরো ধীর)</option></select>
-      <button class="btn" id="subBurn">🔥 বসাও</button>
+      <select id="subBurnQ"><option value="fast" data-i18n="Fast">দ্রুত</option><option value="good" data-i18n="Better quality (slower)">ভালো কোয়ালিটি (আরো ধীর)</option></select>
+      <button class="btn" id="subBurn" data-i18n="🔥 Burn">🔥 বসাও</button>
     </div>
   </div>
 </div>
