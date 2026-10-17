@@ -396,26 +396,35 @@ def auth_start(typ):
 
 
 def auth_finish(redirect_url):
-    query = urllib.parse.urlsplit((redirect_url or "").strip()).query
-    if "code=" not in query:
-        raise ApiError(400, "address bar-এর পুরো লিংক পেস্ট করুন (এতে code= থাকে)")
     proc = AUTH["proc"]
-    if not proc or proc.poll() is not None:
+    if not proc:
         raise ApiError(400, "লগইনের মেয়াদ শেষ, আবার লিংক তৈরি করুন")
-    try:
-        conn = http.client.HTTPConnection("127.0.0.1", 53682, timeout=30)
-        conn.request("GET", "/?" + query)
-        conn.getresponse().read()
-    except OSError:
-        raise ApiError(502, "rclone লগইন হেল্পারে পৌঁছানো যায়নি")
-    try:
-        proc.wait(timeout=60)
-    except subprocess.TimeoutExpired:
-        proc.kill()
-        raise ApiError(504, "লগইনের সময় শেষ")
+    # Normal flow: the rclone helper is still waiting, so hand it the code from
+    # the pasted redirect URL. When the panel is opened on the same machine the
+    # browser reaches 127.0.0.1:53682 itself, so rclone already has the code and
+    # has exited ("All done") -- then skip straight to reading the token.
+    if proc.poll() is None:
+        query = urllib.parse.urlsplit((redirect_url or "").strip()).query
+        if "code=" not in query:
+            raise ApiError(400, "address bar-এর পুরো লিংক পেস্ট করুন (এতে code= থাকে)")
+        try:
+            conn = http.client.HTTPConnection("127.0.0.1", 53682, timeout=30)
+            conn.request("GET", "/?" + query)
+            conn.getresponse().read()
+        except OSError:
+            raise ApiError(502, "rclone লগইন হেল্পারে পৌঁছানো যায়নি")
+        try:
+            proc.wait(timeout=60)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            raise ApiError(504, "লগইনের সময় শেষ")
     time.sleep(0.2)
     typ = AUTH["type"]
-    return create_remote(typ, oauth_params(typ, parse_token("".join(AUTH["out"]))))
+    try:
+        token = parse_token("".join(AUTH["out"]))
+    except ApiError:
+        raise ApiError(400, "লগইন সম্পূর্ণ হয়নি। আবার 'লগইন লিংক তৈরি করো' দিয়ে চেষ্টা করুন।")
+    return create_remote(typ, oauth_params(typ, token))
 
 
 # ---------------------------------------------------------------- aria2
@@ -2011,6 +2020,8 @@ MSG_EN = {
     "লগইনের মেয়াদ শেষ, আবার লিংক তৈরি করুন": "Login expired, make a new link",
     "rclone লগইন হেল্পারে পৌঁছানো যায়নি": "Could not reach the rclone login helper",
     "লগইনের সময় শেষ": "Login timed out", "aria2 চলছে না": "aria2 is not running",
+    "লগইন সম্পূর্ণ হয়নি। আবার 'লগইন লিংক তৈরি করো' দিয়ে চেষ্টা করুন।":
+        "Login did not complete. Try again with 'Make a login link'.",
     "ভিডিও লিংক http/https হতে হবে": "The video link must be http/https",
     "yt-dlp ইনস্টল নেই": "yt-dlp is not installed",
     "সাবটাইটেলের ভাষা এভাবে লিখুন: bn,en": "Write the subtitle languages like: bn,en",
