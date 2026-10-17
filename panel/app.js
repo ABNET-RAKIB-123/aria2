@@ -27,6 +27,118 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
 }
 
+// ---------- language (বাংলা | English), remembered. Static text carries
+// data-i18n / data-i18n-ph / data-i18n-title (the English); Bangla is the
+// default in the HTML. Dynamic strings go through t('<bangla>').
+let lang = 'bn';
+try { lang = localStorage.getItem('lang') || 'bn'; } catch (e) {}
+const TR = {
+  'টা ডাউনলোড শুরু': ' downloads started',
+  'টা ভিডিও (ট্রান্সফার ট্যাবে দেখুন)': ' video(s) (see the Transfers tab)',
+  'টা Cloud কাজ (ট্রান্সফার ট্যাবে দেখুন)': ' cloud task(s) (see the Transfers tab)',
+  'আগে লিংক দিন': 'Enter a link first',
+  'Torrent যোগ হয়েছে': 'Torrent added',
+  'সব থামানো হয়েছে': 'All paused',
+  'সব চালু হয়েছে': 'All resumed',
+  'শেষগুলো তালিকা থেকে মুছেছে': 'Cleared finished items',
+  'Cloud-এর ফোল্ডার (খালি = মূল ফোল্ডার)': 'Cloud folder (empty = root folder)',
+  'সার্ভারের ফোল্ডার (খালি = মূল ফোল্ডার)': 'Server folder (empty = root folder)',
+  'চলছে': 'Active', 'অপেক্ষায়': 'Waiting', 'থামানো': 'Paused', 'শেষ ✔': 'Done ✔',
+  'সমস্যা': 'Error', 'বাতিল': 'Cancelled',
+  'কানেকশন ': 'Conns ', 'সিডার ': 'Seeders ',
+  '✖ বাতিল': '✖ Cancel', '🔁 আবার': '🔁 Retry',
+  'কোনো ডাউনলোড নেই': 'No downloads', 'এই ডাউনলোড বাতিল করবেন?': 'Cancel this download?',
+  'সার্ভার': 'Server', '← ফিরে যাও': '← Back',
+  'খোঁজার ফলাফল:': 'search results:', 'টা': '', ' (প্রথম ৩০০টা)': ' (first 300)',
+  ' · শেষ করা হচ্ছে...': ' · finishing...', 'আপলোড শেষ ✔': 'Upload done ✔',
+  'সমস্যা: ': 'Error: ', 'নেটওয়ার্ক সমস্যা': 'Network error', 'বাতিল করা হয়েছে': 'Cancelled',
+  'zip করে নামাও': 'Download as zip', 'নামাও': 'Download', 'ব্রাউজারে খোলো': 'Open in browser',
+  'খোলো (extract)': 'Extract', 'সাবটাইটেল': 'Subtitles', 'Cloud-এ পাঠাও': 'Send to cloud',
+  'নাম বদলাও': 'Rename', 'অন্য ফোল্ডারে সরাও': 'Move to another folder', 'মুছে ফেলো': 'Delete',
+  'কিছু নেই': 'Empty', 'ফোল্ডার': 'Folder', 'টা সিলেক্ট করা': ' selected',
+  'আগে Cloud একাউন্ট কানেক্ট করুন (☁ Cloud ট্যাব)': 'Connect a cloud account first (☁ Cloud tab)',
+  'কোন Cloud একাউন্টে?': 'Which cloud account?', 'এই নামে কোনো একাউন্ট নেই': 'No account with that name',
+  '-এর কোন ফোল্ডারে পাঠাবেন? (খালি = মূল ফোল্ডার)': ': which folder to send to? (empty = root)',
+  'লিংক কত দিন চলবে? (1, 7, 30 বা 365)': 'How many days should the link work? (1, 7, 30 or 365)',
+  'Direct link কপি হয়েছে (': 'Direct link copied (', ' দিন চলবে)': ' days)',
+  'Direct link (': 'Direct link (', ' দিন চলবে):': ' days):',
+  'কোন ফোল্ডারে কপি হবে? (খালি = মূল ফোল্ডার)': 'Copy to which folder? (empty = root)',
+  'কোন ফোল্ডারে সরাবে? (খালি = মূল ফোল্ডার)': 'Move to which folder? (empty = root)',
+  'টা কপি হয়েছে': ' copied', 'টা সরানো হয়েছে': ' moved',
+  'খোলা শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন': 'Extraction started, see the Transfers tab',
+  'Cloud-এ পাঠানো শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন': 'Started sending to cloud, see the Transfers tab',
+  'নতুন নাম:': 'New name:', 'নাম বদলেছে': 'Renamed',
+  'মুছে ফেলবেন? এটা আর ফেরত আসবে না।': 'Delete this? It cannot be undone.', 'মুছে ফেলা হয়েছে': 'Deleted',
+  'নতুন ফোল্ডারের নাম:': 'New folder name:', 'ফোল্ডার তৈরি হয়েছে': 'Folder created',
+  'ফোল্ডার খালি': 'Folder empty', 'ব্যবহৃত': 'used',
+  'পিসিতে নামাও': 'Download to PC', 'সার্ভারে আনো': 'Fetch to server',
+  'সার্ভারের কোন ফোল্ডারে আনবেন? (খালি = মূল ফোল্ডার)': 'Fetch to which server folder? (empty = root)',
+  'সার্ভারে আনা শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন': 'Fetch to server started, see the Transfers tab',
+  'মুছবেন?': 'Delete?',
+  'একাউন্টটা প্যানেল থেকে সরাবেন? (Cloud-এর ফাইল মুছবে না)': 'Remove this account from the panel? (cloud files stay)',
+  'সরানো হয়েছে': 'Removed', 'কানেক্ট হয়েছে ✔': 'Connected ✔',
+  'কোনো ট্রান্সফার নেই': 'No transfers', 'শুরু হচ্ছে...': 'Starting...',
+  'কোনো ফিড নেই': 'No feeds', 'শেষ চেক:': 'Last check:', 'নতুন:': 'new:',
+  'এখনো চেক হয়নি': 'Not checked yet', 'বন্ধ': 'Off', 'ফিল্টার:': 'Filter:', '(সব)': '(all)',
+  '⏸ বন্ধ': '⏸ Off', '▶ চালু': '▶ On', 'RSS লিংক দিন': 'Enter the RSS link',
+  'ফিড যোগ হয়েছে': 'Feed added', 'এই ফিড মুছবেন?': 'Delete this feed?',
+  'টা নতুন ডাউনলোড যোগ হয়েছে': ' new downloads added', 'সেভ হয়েছে': 'Saved',
+  'টা Cloud-এ পাঠানো শুরু হয়েছে': ' started sending to cloud',
+  'টা জিনিস মুছে ফেলবেন? এটা আর ফেরত আসবে না।': ' items will be deleted? This cannot be undone.',
+  'ইউজার:': 'User:', 'অনুমতি:': 'Role:', 'প্যানেল ভার্সন': 'Panel version',
+  'চালু আছে:': 'On:',
+  'সার্ভার রিস্টার্ট হলে লিংক বদলে যায়। Telegram চালু থাকলে নতুন লিংক মেসেজে আসবে।':
+    'The link changes when the server restarts. If Telegram is on, the new link is sent to you.',
+  'বন্ধ আছে। ডোমেইন ছাড়া ফ্রি HTTPS লিংক চাইলে সার্ভারে চালান: ':
+    'Off. For a free HTTPS link without a domain, run on the server: ',
+  'viewer (শুধু দেখা)': 'viewer (view only)', 'ইউজার': 'User', 'অনুমতি': 'Role', ' (আপনি)': ' (you)',
+  'ইউজার মুছবেন?': 'Delete this user?', 'ইউজার সেভ হয়েছে': 'User saved',
+  'আগে Cloud একাউন্ট কানেক্ট করুন': 'Connect a cloud account first',
+  'মেসেজ পাঠানো হয়েছে, Telegram দেখুন': 'Message sent, check Telegram', 'পাসওয়ার্ড বদলেছে': 'Password changed',
+  'পড়া হচ্ছে...': 'Reading...', 'ভাষা লেখা নেই': 'No language', 'ডিফল্ট': 'Default',
+  ' (ছবির সাবটাইটেল)': ' (image subtitle)', 'মুছো': 'Delete', '.srt ফাইল হিসেবে আলাদা করো': 'Extract as a .srt file',
+  'এই ভিডিওতে আলাদা (soft) সাবটাইটেল নেই। ছবির ভেতরে লেখা থাকলে সেটা মোছা যায় না।':
+    'This video has no separate (soft) subtitles. Burned-in text cannot be removed.',
+  'এই ফোল্ডারে কোনো সাবটাইটেল ফাইল নেই': 'No subtitle file in this folder', 'নাম (ঐচ্ছিক)': 'Name (optional)',
+  'ভিডিওর': 'Video', 'ফাইল:': 'File:', 'আগে একটা সাবটাইটেল যোগ করুন': 'Add a subtitle first',
+  '.srt ফাইল বানানো শুরু হয়েছে, ভিডিওর পাশেই পাবেন': 'Making the .srt file; it will appear next to the video',
+  'যেটা মুছছেন সেটাকে ডিফল্ট করা যাবে না': 'You cannot set the one being removed as default',
+  'আসল ভিডিও ফাইলটা বদলে যাবে। চালিয়ে যাবেন?': 'The original video file will change. Continue?',
+  'সাবটাইটেলের কাজ শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন': 'Subtitle task started, see the Transfers tab',
+  'সাবটাইটেল বসানো শুরু হয়েছে। অনেক সময় লাগতে পারে, "ট্রান্সফার" ট্যাবে progress দেখুন':
+    'Burn-in started. It can take a while; watch progress in the Transfers tab',
+  'অজানা': 'Unknown',
+};
+const t = s => (lang === 'en' && TR[s] != null) ? TR[s] : s;
+function applyStatic() {
+  document.documentElement.lang = lang === 'en' ? 'en' : 'bn';
+  $$('[data-i18n]').forEach(el => {
+    if (el._bn == null) el._bn = el.innerHTML;
+    el.innerHTML = (lang === 'en' && el.dataset.i18n) ? el.dataset.i18n : el._bn;
+  });
+  $$('[data-i18n-ph]').forEach(el => {
+    if (el._bnph == null) el._bnph = el.placeholder;
+    el.placeholder = (lang === 'en' && el.dataset.i18nPh) ? el.dataset.i18nPh : el._bnph;
+  });
+  $$('[data-i18n-title]').forEach(el => {
+    if (el._bnt == null) el._bnt = el.title;
+    el.title = (lang === 'en' && el.dataset.i18nTitle) ? el.dataset.i18nTitle : el._bnt;
+  });
+  const b = $('#langToggle');
+  if (b) b.textContent = lang === 'en' ? 'বাং' : 'EN';
+}
+function setLang(l) {
+  lang = l;
+  try { localStorage.setItem('lang', l); } catch (e) {}
+  applyStatic();
+  if (!$('#app').classList.contains('hidden')) {
+    try { updateDlForm(); } catch (e) {}
+    loadInfo().then(() => setTab(tab)).catch(() => setTab(tab));
+  }
+}
+applyStatic();
+if ($('#langToggle')) $('#langToggle').onclick = () => setLang(lang === 'en' ? 'bn' : 'en');
+
 function fmtSize(n) {
   n = Number(n) || 0;
   const u = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -52,7 +164,7 @@ function toast(msg, err) {
 }
 
 async function api(path, opts = {}) {
-  const headers = { 'X-Panel': '1' };
+  const headers = { 'X-Panel': '1', 'X-Lang': lang };
   if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
   const r = await fetch(path, { method: opts.method || 'GET', headers,
     body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined });
@@ -121,7 +233,7 @@ function fillRemoteSelects() {
   $$('.remoteSelect').forEach(sel => {
     const cur = sel.value;
     sel.innerHTML = info.remotes.map(r => `<option value="${esc(r.name)}">${esc(r.label)} (${esc(r.name)})</option>`).join('')
-      || '<option value="">কোনো Cloud একাউন্ট নেই</option>';
+      || `<option value="">${t('কোনো Cloud একাউন্ট নেই')}</option>`;
     if (info.remotes.some(r => r.name === cur)) sel.value = cur;
   });
 }
@@ -139,25 +251,25 @@ async function loadInfo() {
 
 // ---------- downloads
 function updateDlForm() {
-  const t = $('#dlTarget').value;
-  $('#dlRemoteBox').classList.toggle('hidden', t !== 'cloud');
-  $('#dlQualityBox').classList.toggle('hidden', t === 'cloud');
-  $('#dlPlaylistBox').classList.toggle('hidden', t === 'cloud');
-  $('#dlSubsBox').classList.toggle('hidden', t === 'cloud');
-  $('#dlFolderLabel').textContent = t === 'cloud' ? 'Cloud-এর ফোল্ডার (খালি = মূল ফোল্ডার)' : 'সার্ভারের ফোল্ডার (খালি = মূল ফোল্ডার)';
+  const tgt = $('#dlTarget').value;
+  $('#dlRemoteBox').classList.toggle('hidden', tgt !== 'cloud');
+  $('#dlQualityBox').classList.toggle('hidden', tgt === 'cloud');
+  $('#dlPlaylistBox').classList.toggle('hidden', tgt === 'cloud');
+  $('#dlSubsBox').classList.toggle('hidden', tgt === 'cloud');
+  $('#dlFolderLabel').textContent = tgt === 'cloud' ? t('Cloud-এর ফোল্ডার (খালি = মূল ফোল্ডার)') : t('সার্ভারের ফোল্ডার (খালি = মূল ফোল্ডার)');
 }
 $('#dlTarget').onchange = updateDlForm;
 
 $('#dlAdd').onclick = () => run(async () => {
   const urls = $('#dlLinks').value.split('\n').map(s => s.trim()).filter(Boolean);
-  if (!urls.length) throw new Error('আগে লিংক দিন');
+  if (!urls.length) throw new Error(t('আগে লিংক দিন'));
   const r = await post('/api/add', { urls, target: $('#dlTarget').value, folder: cleanFolder($('#dlFolder').value),
     quality: $('#dlQuality').value, playlist: $('#dlPlaylist').checked, remote: $('#dlRemote').value,
     subs: $('#dlSubs').checked ? $('#dlSubsLang').value.trim() : '' });
   const parts = [];
-  if (r.aria2) parts.push(`⬇ ${r.aria2}টা ডাউনলোড শুরু`);
-  if (r.video) parts.push(`🎬 ${r.video}টা ভিডিও (ট্রান্সফার ট্যাবে দেখুন)`);
-  if (r.cloud) parts.push(`☁ ${r.cloud}টা Cloud কাজ (ট্রান্সফার ট্যাবে দেখুন)`);
+  if (r.aria2) parts.push(`⬇ ${r.aria2}${t('টা ডাউনলোড শুরু')}`);
+  if (r.video) parts.push(`🎬 ${r.video}${t('টা ভিডিও (ট্রান্সফার ট্যাবে দেখুন)')}`);
+  if (r.cloud) parts.push(`☁ ${r.cloud}${t('টা Cloud কাজ (ট্রান্সফার ট্যাবে দেখুন)')}`);
   if (parts.length) { toast(parts.join('\n')); $('#dlLinks').value = r.errors.length ? r.errors.map(e => e.split(': ')[0]).join('\n') : ''; }
   r.errors.forEach(e => toast(e, true));
   tick();
@@ -181,11 +293,11 @@ $('#dlTorrent').onchange = e => run(async () => {
   }
   e.target.value = '';
   tick();
-}, 'Torrent যোগ হয়েছে');
+}, t('Torrent যোগ হয়েছে'));
 
-$('#dlPauseAll').onclick = () => run(() => aria('aria2.pauseAll'), 'সব থামানো হয়েছে');
-$('#dlResumeAll').onclick = () => run(() => aria('aria2.unpauseAll'), 'সব চালু হয়েছে');
-$('#dlPurge').onclick = () => run(() => aria('aria2.purgeDownloadResult'), 'শেষগুলো তালিকা থেকে মুছেছে').then(tick);
+$('#dlPauseAll').onclick = () => run(() => aria('aria2.pauseAll'), t('সব থামানো হয়েছে'));
+$('#dlResumeAll').onclick = () => run(() => aria('aria2.unpauseAll'), t('সব চালু হয়েছে'));
+$('#dlPurge').onclick = () => run(() => aria('aria2.purgeDownloadResult'), t('শেষগুলো তালিকা থেকে মুছেছে')).then(tick);
 
 function dlName(d) {
   if (d.bittorrent && d.bittorrent.info && d.bittorrent.info.name) return d.bittorrent.info.name;
@@ -213,7 +325,7 @@ async function loadDownloads() {
   $('#bDl').textContent = n; $('#bDl').classList.toggle('hidden', !n);
   if (tab !== 'downloads') return;
   const all = [...act, ...wait, ...stop.slice().reverse()];
-  if (!all.length) { $('#dlList').innerHTML = '<div class="empty">কোনো ডাউনলোড নেই</div>'; return; }
+  if (!all.length) { $('#dlList').innerHTML = `<div class="empty">${t('কোনো ডাউনলোড নেই')}</div>`; return; }
   const edit = can('user');
   $('#dlList').innerHTML = all.map(d => {
     const total = +d.totalLength, done = +d.completedLength, speed = +d.downloadSpeed;
@@ -221,19 +333,19 @@ async function loadDownloads() {
     const [label, cls] = STATUS[d.status] || [d.status, ''];
     const meta = [`${fmtSize(done)} / ${total ? fmtSize(total) : '?'}`];
     if (d.status === 'active') {
-      meta.push(`${fmtSize(speed)}/s`, `ETA ${fmtEta((total - done) / speed)}`, `কানেকশন ${d.connections}`);
-      if (d.bittorrent) meta.push(`সিডার ${d.numSeeders}`);
+      meta.push(`${fmtSize(speed)}/s`, `ETA ${fmtEta((total - done) / speed)}`, `${t('কানেকশন ')}${d.connections}`);
+      if (d.bittorrent) meta.push(`${t('সিডার ')}${d.numSeeders}`);
     }
     if (d.errorMessage) meta.push(d.errorMessage);
     const btns = [];
     if (edit) {
       if (d.status === 'active' || d.status === 'waiting') btns.push(`<button class="btn sm" data-a="pause" data-g="${d.gid}">⏸</button>`);
       if (d.status === 'paused') btns.push(`<button class="btn sm" data-a="unpause" data-g="${d.gid}">▶</button>`);
-      if (['active', 'waiting', 'paused'].includes(d.status)) btns.push(`<button class="btn sm danger" data-a="remove" data-g="${d.gid}">✖ বাতিল</button>`);
+      if (['active', 'waiting', 'paused'].includes(d.status)) btns.push(`<button class="btn sm danger" data-a="remove" data-g="${d.gid}">${t('✖ বাতিল')}</button>`);
       else btns.push(`<button class="btn sm" data-a="clear" data-g="${d.gid}">🧹</button>`);
-      if (d.status === 'error') btns.push(`<button class="btn sm" data-a="retry" data-g="${d.gid}">🔁 আবার</button>`);
+      if (d.status === 'error') btns.push(`<button class="btn sm" data-a="retry" data-g="${d.gid}">${t('🔁 আবার')}</button>`);
     }
-    return `<div class="item"><div class="name">${esc(dlName(d))} <span class="pill ${cls}">${label}</span>
+    return `<div class="item"><div class="name">${esc(dlName(d))} <span class="pill ${cls}">${t(label)}</span>
       <div class="meta">${esc(meta.join(' · '))}</div>
       <div class="bar ${cls}"><i style="width:${d.status === 'complete' ? 100 : pct}%"></i></div></div>
       <div class="actions">${btns.join('')}</div></div>`;
@@ -245,7 +357,7 @@ $('#dlList').onclick = e => {
   const acts = {
     pause: () => aria('aria2.pause', [g]),
     unpause: () => aria('aria2.unpause', [g]),
-    remove: () => confirm('এই ডাউনলোড বাতিল করবেন?') && aria('aria2.forceRemove', [g]),
+    remove: () => confirm(t('এই ডাউনলোড বাতিল করবেন?')) && aria('aria2.forceRemove', [g]),
     clear: () => aria('aria2.removeDownloadResult', [g]),
     retry: async () => {
       const d = await aria('aria2.tellStatus', [g, ['files', 'dir']]);
@@ -289,13 +401,14 @@ function uploadFile(file, url, listEl, done) {
   const started = Date.now();
   xhr.open('PUT', url);
   xhr.setRequestHeader('X-Panel', '1');
+  xhr.setRequestHeader('X-Lang', lang);
   xhr.upload.onprogress = e => {
     if (!e.lengthComputable) return;
     const pct = Math.floor(e.loaded / e.total * 100);
     const speed = e.loaded / ((Date.now() - started) / 1000);
     row.querySelector('i').style.width = pct + '%';
     row.querySelector('.meta').textContent = `${pct}% · ${fmtSize(e.loaded)} / ${fmtSize(e.total)} · ${fmtSize(speed)}/s`
-      + (pct === 100 ? ' · শেষ করা হচ্ছে...' : '');
+      + (pct === 100 ? t(' · শেষ করা হচ্ছে...') : '');
   };
   const finish = (ok, msg) => {
     row.querySelector('.bar').classList.add(ok ? 'ok' : 'bad');
@@ -309,10 +422,10 @@ function uploadFile(file, url, listEl, done) {
     let d = {}; try { d = JSON.parse(xhr.responseText); } catch (e) {}
     if (xhr.status === 401) showLogin();
     resp = d;
-    xhr.status < 300 ? finish(true, 'আপলোড শেষ ✔') : finish(false, 'সমস্যা: ' + (d.error || xhr.statusText));
+    xhr.status < 300 ? finish(true, t('আপলোড শেষ ✔')) : finish(false, t('সমস্যা: ') + (d.error || xhr.statusText));
   };
-  xhr.onerror = () => finish(false, 'নেটওয়ার্ক সমস্যা');
-  xhr.onabort = () => finish(false, 'বাতিল করা হয়েছে');
+  xhr.onerror = () => finish(false, t('নেটওয়ার্ক সমস্যা'));
+  xhr.onabort = () => finish(false, t('বাতিল করা হয়েছে'));
   row.querySelector('button').onclick = () => xhr.abort();
   xhr.send(file);
 }
@@ -335,7 +448,7 @@ async function loadFiles(path = fPath) {
   fItems = d.items.map(i => ({ ...i, path: join(fPath, i.name) }));
   fSelected.clear();
   $('#fSearch').value = '';
-  crumbs($('#fCrumbs'), fPath, p => loadFiles(p), 'সার্ভার');
+  crumbs($('#fCrumbs'), fPath, p => loadFiles(p), t('সার্ভার'));
   renderFiles();
 }
 async function searchAll(q) {
@@ -344,7 +457,7 @@ async function searchAll(q) {
   fSearchMode = true;
   fItems = d.items;
   fSelected.clear();
-  $('#fCrumbs').innerHTML = `<a data-p="">← ফিরে যাও</a> · "${esc(q)}" খোঁজার ফলাফল: ${d.items.length}টা${d.truncated ? ' (প্রথম ৩০০টা)' : ''}`;
+  $('#fCrumbs').innerHTML = `<a data-p="">${t('← ফিরে যাও')}</a> · "${esc(q)}" ${t('খোঁজার ফলাফল:')} ${d.items.length}${t('টা')}${d.truncated ? t(' (প্রথম ৩০০টা)') : ''}`;
   $('#fCrumbs').onclick = e => { if (e.target.closest('a')) loadFiles(fPath); };
   renderFiles();
 }
@@ -359,17 +472,17 @@ function sortedFiles() {
 function fileActions(i) {
   const p = esc(i.path), dl = '/api/download?path=' + enc(i.path);
   let h = i.dir
-    ? `<a class="btn sm" href="/api/zip?path=${enc(i.path)}" title="zip করে নামাও">⬇</a>`
-    : `<a class="btn sm" href="${dl}" title="নামাও">⬇</a>`
-      + (MEDIA.test(i.name) ? `<a class="btn sm" target="_blank" href="${dl}&inline=1" title="ব্রাউজারে খোলো">▶</a>` : '');
+    ? `<a class="btn sm" href="/api/zip?path=${enc(i.path)}" title="${t('zip করে নামাও')}">⬇</a>`
+    : `<a class="btn sm" href="${dl}" title="${t('নামাও')}">⬇</a>`
+      + (MEDIA.test(i.name) ? `<a class="btn sm" target="_blank" href="${dl}&inline=1" title="${t('ব্রাউজারে খোলো')}">▶</a>` : '');
   if (can('user')) {
-    if (!i.dir && ARCHIVE.test(i.name)) h += `<button class="btn sm" data-a="extract" data-p="${p}" title="খোলো (extract)">🗜</button>`;
-    if (!i.dir && VIDEO.test(i.name)) h += `<button class="btn sm" data-a="subs" data-p="${p}" title="সাবটাইটেল">🎞</button>`;
+    if (!i.dir && ARCHIVE.test(i.name)) h += `<button class="btn sm" data-a="extract" data-p="${p}" title="${t('খোলো (extract)')}">🗜</button>`;
+    if (!i.dir && VIDEO.test(i.name)) h += `<button class="btn sm" data-a="subs" data-p="${p}" title="${t('সাবটাইটেল')}">🎞</button>`;
     h += `<button class="btn sm" data-a="share" data-p="${p}" title="Direct link">🔗</button>`
-      + `<button class="btn sm" data-a="tocloud" data-p="${p}" title="Cloud-এ পাঠাও">☁</button>`
-      + `<button class="btn sm" data-a="rename" data-p="${p}" data-n="${esc(i.name)}" title="নাম বদলাও">✏</button>`
-      + `<button class="btn sm" data-a="move" data-p="${p}" title="অন্য ফোল্ডারে সরাও">📦</button>`
-      + `<button class="btn sm danger" data-a="delete" data-p="${p}" title="মুছে ফেলো">🗑</button>`;
+      + `<button class="btn sm" data-a="tocloud" data-p="${p}" title="${t('Cloud-এ পাঠাও')}">☁</button>`
+      + `<button class="btn sm" data-a="rename" data-p="${p}" data-n="${esc(i.name)}" title="${t('নাম বদলাও')}">✏</button>`
+      + `<button class="btn sm" data-a="move" data-p="${p}" title="${t('অন্য ফোল্ডারে সরাও')}">📦</button>`
+      + `<button class="btn sm danger" data-a="delete" data-p="${p}" title="${t('মুছে ফেলো')}">🗑</button>`;
   }
   return h;
 }
@@ -377,7 +490,7 @@ function renderFiles() {
   $('#fView').textContent = fGrid ? '☰' : '▦';
   const items = sortedFiles();
   const sel = i => `<input type="checkbox" data-sel="${esc(i.path)}" ${fSelected.has(i.path) ? 'checked' : ''}>`;
-  if (!items.length) $('#fList').innerHTML = '<div class="empty">কিছু নেই</div>';
+  if (!items.length) $('#fList').innerHTML = `<div class="empty">${t('কিছু নেই')}</div>`;
   else if (fGrid) {
     $('#fList').innerHTML = '<div class="grid">' + items.map(i => {
       const thumb = !i.dir && THUMBABLE.test(i.name)
@@ -385,20 +498,20 @@ function renderFiles() {
       return `<div class="tile">${sel(i)}
         <div class="thumb" data-a="${i.dir ? 'open' : 'view'}" data-p="${esc(i.path)}">${thumb}</div>
         <div class="tname">${esc(i.name)}</div>
-        <div class="meta">${i.dir ? 'ফোল্ডার' : fmtSize(i.size)}</div>
+        <div class="meta">${i.dir ? t('ফোল্ডার') : fmtSize(i.size)}</div>
         <div class="actions">${fileActions(i)}</div></div>`;
     }).join('') + '</div>';
   } else {
     $('#fList').innerHTML = '<div class="list">' + items.map(i => `<div class="item">${sel(i)}
       <div class="name ${i.dir ? 'link' : ''}" ${i.dir ? `data-a="open" data-p="${esc(i.path)}"` : ''}>
-      ${icon(i)} ${esc(fSearchMode ? i.path : i.name)}<div class="meta">${i.dir ? 'ফোল্ডার' : fmtSize(i.size)} · ${fmtDate(i.mtime)}</div></div>
+      ${icon(i)} ${esc(fSearchMode ? i.path : i.name)}<div class="meta">${i.dir ? t('ফোল্ডার') : fmtSize(i.size)} · ${fmtDate(i.mtime)}</div></div>
       <div class="actions">${fileActions(i)}</div></div>`).join('') + '</div>';
   }
   updateBulk();
 }
 function updateBulk() {
   $('#fBulk').classList.toggle('hidden', !fSelected.size);
-  $('#fBulkCount').textContent = `${fSelected.size}টা সিলেক্ট করা`;
+  $('#fBulkCount').textContent = `${fSelected.size}${t('টা সিলেক্ট করা')}`;
   $('#fSelectAll').checked = fSelected.size > 0 && fSelected.size === sortedFiles().length;
 }
 let fFilterTimer;
@@ -409,34 +522,34 @@ $('#fView').onclick = () => { fGrid = !fGrid; try { localStorage.setItem('grid',
 $('#fSelectAll').onchange = e => { fSelected = new Set(e.target.checked ? sortedFiles().map(i => i.path) : []); renderFiles(); };
 
 function askCloud(defaultDest) {
-  if (!info.remotes.length) { toast('আগে Cloud একাউন্ট কানেক্ট করুন (☁ Cloud ট্যাব)', true); return null; }
+  if (!info.remotes.length) { toast(t('আগে Cloud একাউন্ট কানেক্ট করুন (☁ Cloud ট্যাব)'), true); return null; }
   const names = info.remotes.map(r => r.name);
   let remote = names[0];
   if (names.length > 1) {
-    remote = prompt(`কোন Cloud একাউন্টে? (${names.join(', ')})`, info.state.autoupload_remote || names[0]);
+    remote = prompt(`${t('কোন Cloud একাউন্টে?')} (${names.join(', ')})`, info.state.autoupload_remote || names[0]);
     if (remote === null) return null;
-    if (!names.includes(remote.trim())) { toast('এই নামে কোনো একাউন্ট নেই', true); return null; }
+    if (!names.includes(remote.trim())) { toast(t('এই নামে কোনো একাউন্ট নেই'), true); return null; }
     remote = remote.trim();
   }
-  const dest = prompt(`${remote}-এর কোন ফোল্ডারে পাঠাবেন? (খালি = মূল ফোল্ডার)`, defaultDest || '');
+  const dest = prompt(`${remote}${t('-এর কোন ফোল্ডারে পাঠাবেন? (খালি = মূল ফোল্ডার)')}`, defaultDest || '');
   if (dest === null) return null;
   return { remote, dest: cleanFolder(dest) };
 }
 async function shareLink(p) {
-  const days = prompt('লিংক কত দিন চলবে? (1, 7, 30 বা 365)', '7');
+  const days = prompt(t('লিংক কত দিন চলবে? (1, 7, 30 বা 365)'), '7');
   if (days === null) return;
   const d = await post('/api/share', { path: p, days: +days || 7 });
   const url = location.origin + d.url;
-  if (await copyText(url)) toast(`Direct link কপি হয়েছে (${d.days} দিন চলবে)`);
-  else prompt(`Direct link (${d.days} দিন চলবে):`, url);
+  if (await copyText(url)) toast(`${t('Direct link কপি হয়েছে (')}${d.days}${t(' দিন চলবে)')}`);
+  else prompt(`${t('Direct link (')}${d.days}${t(' দিন চলবে):')}`, url);
 }
 
 function moveItems(paths, copy) {
   if (!paths.length) return;
-  const dest = prompt(copy ? 'কোন ফোল্ডারে কপি হবে? (খালি = মূল ফোল্ডার)' : 'কোন ফোল্ডারে সরাবে? (খালি = মূল ফোল্ডার)', '');
+  const dest = prompt(copy ? t('কোন ফোল্ডারে কপি হবে? (খালি = মূল ফোল্ডার)') : t('কোন ফোল্ডারে সরাবে? (খালি = মূল ফোল্ডার)'), '');
   if (dest === null) return;
   run(() => post('/api/fs/move', { paths, dest: cleanFolder(dest), copy: !!copy }),
-      `${paths.length}টা ${copy ? 'কপি' : 'সরানো'} হয়েছে`)
+      `${paths.length}${copy ? t('টা কপি হয়েছে') : t('টা সরানো হয়েছে')}`)
     .then(() => fSearchMode ? searchAll($('#fSearch').value) : loadFiles());
 }
 $('#fList').onclick = e => {
@@ -448,18 +561,18 @@ $('#fList').onclick = e => {
     open: () => loadFiles(p),
     view: () => window.open('/api/download?inline=1&path=' + enc(p), '_blank'),
     share: () => run(() => shareLink(p)),
-    extract: () => run(() => post('/api/fs/extract', { path: p }), 'খোলা শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন').then(tick),
+    extract: () => run(() => post('/api/fs/extract', { path: p }), t('খোলা শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন')).then(tick),
     subs: () => openSubs(p),
     tocloud: () => {
       const c = askCloud(info.state.autoupload_dest); if (!c) return;
-      run(() => post('/api/cloud/upload', { path: p, ...c }), 'Cloud-এ পাঠানো শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন').then(tick);
+      run(() => post('/api/cloud/upload', { path: p, ...c }), t('Cloud-এ পাঠানো শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন')).then(tick);
     },
     rename: () => {
-      const name = prompt('নতুন নাম:', el.dataset.n);
-      if (name && name !== el.dataset.n) run(() => post('/api/fs/rename', { path: p, name }), 'নাম বদলেছে').then(() => loadFiles());
+      const name = prompt(t('নতুন নাম:'), el.dataset.n);
+      if (name && name !== el.dataset.n) run(() => post('/api/fs/rename', { path: p, name }), t('নাম বদলেছে')).then(() => loadFiles());
     },
-    delete: () => confirm(`"${p}" মুছে ফেলবেন? এটা আর ফেরত আসবে না।`)
-      && run(() => post('/api/fs/delete', { path: p }), 'মুছে ফেলা হয়েছে').then(() => loadFiles()),
+    delete: () => confirm(`"${p}" ${t('মুছে ফেলবেন? এটা আর ফেরত আসবে না।')}`)
+      && run(() => post('/api/fs/delete', { path: p }), t('মুছে ফেলা হয়েছে')).then(() => loadFiles()),
     move: () => moveItems([p]),
   })[el.dataset.a]();
 };
@@ -471,10 +584,10 @@ $('#fBulk').onclick = e => {
     cloud: () => {
       const c = askCloud(info.state.autoupload_dest); if (!c) return;
       run(async () => { for (const p of paths) await post('/api/cloud/upload', { path: p, ...c }); },
-        `${paths.length}টা Cloud-এ পাঠানো শুরু হয়েছে`).then(tick);
+        `${paths.length}${t('টা Cloud-এ পাঠানো শুরু হয়েছে')}`).then(tick);
     },
-    delete: () => confirm(`${paths.length}টা জিনিস মুছে ফেলবেন? এটা আর ফেরত আসবে না।`)
-      && run(() => post('/api/fs/delete', { paths }), 'মুছে ফেলা হয়েছে').then(() => fSearchMode ? searchAll($('#fSearch').value) : loadFiles()),
+    delete: () => confirm(`${paths.length}${t('টা জিনিস মুছে ফেলবেন? এটা আর ফেরত আসবে না।')}`)
+      && run(() => post('/api/fs/delete', { paths }), t('মুছে ফেলা হয়েছে')).then(() => fSearchMode ? searchAll($('#fSearch').value) : loadFiles()),
     move: () => moveItems(paths, false),
     copy: () => moveItems(paths, true),
     clear: () => { fSelected.clear(); renderFiles(); },
@@ -482,8 +595,8 @@ $('#fBulk').onclick = e => {
 };
 $('#fRefresh').onclick = () => loadFiles();
 $('#fMkdir').onclick = () => {
-  const name = prompt('নতুন ফোল্ডারের নাম:');
-  if (name) run(() => post('/api/fs/mkdir', { dir: fPath, name }), 'ফোল্ডার তৈরি হয়েছে').then(() => loadFiles());
+  const name = prompt(t('নতুন ফোল্ডারের নাম:'));
+  if (name) run(() => post('/api/fs/mkdir', { dir: fPath, name }), t('ফোল্ডার তৈরি হয়েছে')).then(() => loadFiles());
 };
 function serverUpload(files) {
   const dir = fPath;
@@ -511,18 +624,18 @@ async function loadCloud(path) {
   $('#cTitle').textContent = '☁ ' + (r.label || '') + ' (' + d.remote + ')';
   crumbs($('#cCrumbs'), cPath, p => loadCloud(p), d.remote);
   const edit = can('user');
-  if (!d.items.length) $('#cList').innerHTML = '<div class="empty">ফোল্ডার খালি</div>';
+  if (!d.items.length) $('#cList').innerHTML = `<div class="empty">${t('ফোল্ডার খালি')}</div>`;
   else $('#cList').innerHTML = d.items.map(i => {
     const p = esc(join(cPath, i.name));
     return `<div class="item"><div class="name ${i.dir ? 'link' : ''}" ${i.dir ? `data-a="open" data-p="${p}"` : ''}>
-      ${icon(i)} ${esc(i.name)}<div class="meta">${i.dir ? 'ফোল্ডার' : fmtSize(i.size)} · ${fmtDate(i.mtime)}</div></div>
+      ${icon(i)} ${esc(i.name)}<div class="meta">${i.dir ? t('ফোল্ডার') : fmtSize(i.size)} · ${fmtDate(i.mtime)}</div></div>
       <div class="actions">
-        ${i.dir ? '' : `<a class="btn sm" href="/api/cloud/download?remote=${enc(d.remote)}&path=${enc(join(cPath, i.name))}&size=${i.size}" title="পিসিতে নামাও">⬇</a>`}
-        ${edit ? `<button class="btn sm" data-a="fetch" data-p="${p}" data-d="${i.dir ? 1 : ''}" title="সার্ভারে আনো">🖥</button>
-        <button class="btn sm danger" data-a="delete" data-p="${p}" data-d="${i.dir ? 1 : ''}" title="মুছে ফেলো">🗑</button>` : ''}</div></div>`;
+        ${i.dir ? '' : `<a class="btn sm" href="/api/cloud/download?remote=${enc(d.remote)}&path=${enc(join(cPath, i.name))}&size=${i.size}" title="${t('পিসিতে নামাও')}">⬇</a>`}
+        ${edit ? `<button class="btn sm" data-a="fetch" data-p="${p}" data-d="${i.dir ? 1 : ''}" title="${t('সার্ভারে আনো')}">🖥</button>
+        <button class="btn sm danger" data-a="delete" data-p="${p}" data-d="${i.dir ? 1 : ''}" title="${t('মুছে ফেলো')}">🗑</button>` : ''}</div></div>`;
   }).join('');
   api('/api/cloud/about?remote=' + enc(d.remote)).then(a => {
-    $('#cQuota').textContent = a.total ? `(${fmtSize(a.used)} / ${fmtSize(a.total)} ব্যবহৃত)` : '';
+    $('#cQuota').textContent = a.total ? `(${fmtSize(a.used)} / ${fmtSize(a.total)} ${t('ব্যবহৃত')})` : '';
   }).catch(() => {});
 }
 $('#cRemote').onchange = () => { cPath = ''; loadCloud(''); };
@@ -532,18 +645,18 @@ $('#cList').onclick = e => {
   ({
     open: () => loadCloud(p),
     fetch: () => {
-      const dest = prompt('সার্ভারের কোন ফোল্ডারে আনবেন? (খালি = মূল ফোল্ডার)', '');
+      const dest = prompt(t('সার্ভারের কোন ফোল্ডারে আনবেন? (খালি = মূল ফোল্ডার)'), '');
       if (dest === null) return;
-      run(() => post('/api/cloud/fetch', { remote, path: p, dir, dest }), 'সার্ভারে আনা শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন').then(tick);
+      run(() => post('/api/cloud/fetch', { remote, path: p, dir, dest }), t('সার্ভারে আনা শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন')).then(tick);
     },
-    delete: () => confirm(`"${p}" মুছবেন?`)
-      && run(() => post('/api/cloud/delete', { remote, path: p, dir }), 'মুছে ফেলা হয়েছে').then(() => loadCloud()),
+    delete: () => confirm(`"${p}" ${t('মুছবেন?')}`)
+      && run(() => post('/api/cloud/delete', { remote, path: p, dir }), t('মুছে ফেলা হয়েছে')).then(() => loadCloud()),
   })[el.dataset.a]();
 };
 $('#cRefresh').onclick = () => loadCloud();
 $('#cMkdir').onclick = () => {
-  const name = prompt('নতুন ফোল্ডারের নাম:');
-  if (name) run(() => post('/api/cloud/mkdir', { remote: cRemote(), dir: cPath, name }), 'ফোল্ডার তৈরি হয়েছে').then(() => loadCloud());
+  const name = prompt(t('নতুন ফোল্ডারের নাম:'));
+  if (name) run(() => post('/api/cloud/mkdir', { remote: cRemote(), dir: cPath, name }), t('ফোল্ডার তৈরি হয়েছে')).then(() => loadCloud());
 };
 function cloudUpload(files) {
   const dir = cPath, remote = cRemote();
@@ -554,8 +667,8 @@ dropZone($('#cDrop'), cloudUpload);
 $('#cAdd').onclick = () => { cAdding = !cAdding; loadCloud(); };
 $('#cRemove').onclick = () => {
   const r = cRemote();
-  if (r && confirm(`"${r}" একাউন্টটা প্যানেল থেকে সরাবেন? (Cloud-এর ফাইল মুছবে না)`))
-    run(() => post('/api/cloud/remove', { remote: r }), 'সরানো হয়েছে').then(() => { cPath = ''; loadCloud(''); });
+  if (r && confirm(`"${r}" ${t('একাউন্টটা প্যানেল থেকে সরাবেন? (Cloud-এর ফাইল মুছবে না)')}`))
+    run(() => post('/api/cloud/remove', { remote: r }), t('সরানো হয়েছে')).then(() => { cPath = ''; loadCloud(''); });
 };
 $('#cType').onchange = () => {
   const t = $('#cType').value;
@@ -565,7 +678,7 @@ $('#cType').onchange = () => {
   ['#cStep2', '#cStep3'].forEach(s => $(s).classList.add('hidden'));
 };
 async function afterConnect(d) {
-  toast(`কানেক্ট হয়েছে ✔ (${d.remote})`);
+  toast(`${t('কানেক্ট হয়েছে ✔')} (${d.remote})`);
   cAdding = false; cPath = '';
   await loadInfo();
   $('#cRemote').value = d.remote;
@@ -604,15 +717,15 @@ async function loadJobs() {
   const running = d.jobs.filter(j => j.status === 'running').length;
   $('#bJobs').textContent = running; $('#bJobs').classList.toggle('hidden', !running);
   if (tab !== 'jobs') return;
-  if (!d.jobs.length) { $('#jList').innerHTML = '<div class="empty">কোনো ট্রান্সফার নেই</div>'; return; }
+  if (!d.jobs.length) { $('#jList').innerHTML = `<div class="empty">${t('কোনো ট্রান্সফার নেই')}</div>`; return; }
   const S = { running: ['চলছে', ''], done: ['শেষ ✔', 'ok'], error: ['সমস্যা', 'bad'], cancelled: ['বাতিল', 'warn'] };
   $('#jList').innerHTML = d.jobs.map(j => {
     const [label, cls] = S[j.status];
     const title = /^\p{Extended_Pictographic}/u.test(j.title) ? j.title : (KIND[j.kind] || '') + ' ' + j.title;
-    return `<div class="item"><div class="name">${esc(title)} <span class="pill ${cls}">${label}</span>
-      <div class="meta">${esc(j.error || j.info || (j.status === 'running' ? 'শুরু হচ্ছে...' : ''))} · ${fmtDate(j.started)}</div>
+    return `<div class="item"><div class="name">${esc(title)} <span class="pill ${cls}">${t(label)}</span>
+      <div class="meta">${esc(j.error || j.info || (j.status === 'running' ? t('শুরু হচ্ছে...') : ''))} · ${fmtDate(j.started)}</div>
       <div class="bar ${cls}"><i style="width:${j.progress}%"></i></div></div>
-      <div class="actions">${j.status === 'running' && can('user') ? `<button class="btn sm danger" data-id="${j.id}">✖ বাতিল</button>` : ''}</div></div>`;
+      <div class="actions">${j.status === 'running' && can('user') ? `<button class="btn sm danger" data-id="${j.id}">${t('✖ বাতিল')}</button>` : ''}</div></div>`;
   }).join('');
 }
 $('#jList').onclick = e => {
@@ -629,46 +742,46 @@ async function loadRss() {
   rssFeeds = d.feeds;
   $('#rDest').value = d.dest;
   $('#rInterval').value = d.interval;
-  if (!rssFeeds.length) { $('#rList').innerHTML = '<div class="empty">কোনো ফিড নেই</div>'; return; }
+  if (!rssFeeds.length) { $('#rList').innerHTML = `<div class="empty">${t('কোনো ফিড নেই')}</div>`; return; }
   $('#rList').innerHTML = rssFeeds.map((f, i) => {
     const s = d.status[f.id];
-    const st = s ? `শেষ চেক: ${fmtDate(s.checked)} · নতুন: ${s.added}${s.error ? ' · ' + s.error : ''}` : 'এখনো চেক হয়নি';
-    return `<div class="item"><div class="name">${esc(f.name || f.url)} ${f.enabled ? '' : '<span class="pill warn">বন্ধ</span>'}
+    const st = s ? `${t('শেষ চেক:')} ${fmtDate(s.checked)} · ${t('নতুন:')} ${s.added}${s.error ? ' · ' + s.error : ''}` : t('এখনো চেক হয়নি');
+    return `<div class="item"><div class="name">${esc(f.name || f.url)} ${f.enabled ? '' : `<span class="pill warn">${t('বন্ধ')}</span>`}
       <div class="meta">${esc(f.url)}</div>
-      <div class="meta">ফিল্টার: ${esc(f.filter || '(সব)')} · ${esc(st)}</div></div>
-      <div class="actions"><button class="btn sm" data-i="${i}" data-a="toggle">${f.enabled ? '⏸ বন্ধ' : '▶ চালু'}</button>
+      <div class="meta">${t('ফিল্টার:')} ${esc(f.filter || t('(সব)'))} · ${esc(st)}</div></div>
+      <div class="actions"><button class="btn sm" data-i="${i}" data-a="toggle">${f.enabled ? t('⏸ বন্ধ') : t('▶ চালু')}</button>
       <button class="btn sm danger" data-i="${i}" data-a="del">🗑</button></div></div>`;
   }).join('');
 }
 async function saveFeeds() { await post('/api/rss/save', { feeds: rssFeeds }); await loadRss(); }
 $('#rAdd').onclick = () => run(async () => {
   const url = $('#rUrl').value.trim();
-  if (!url) throw new Error('RSS লিংক দিন');
+  if (!url) throw new Error(t('RSS লিংক দিন'));
   rssFeeds.push({ url, name: $('#rName').value.trim(), filter: $('#rFilter').value.trim(), enabled: true });
   try { await saveFeeds(); } catch (e) { rssFeeds.pop(); throw e; }
   $('#rUrl').value = $('#rName').value = $('#rFilter').value = '';
-}, 'ফিড যোগ হয়েছে');
+}, t('ফিড যোগ হয়েছে'));
 $('#rList').onclick = e => {
   const b = e.target.closest('button[data-i]'); if (!b) return;
   const i = +b.dataset.i;
   if (b.dataset.a === 'toggle') rssFeeds[i].enabled = !rssFeeds[i].enabled;
-  else if (!confirm('এই ফিড মুছবেন?')) return;
+  else if (!confirm(t('এই ফিড মুছবেন?'))) return;
   else rssFeeds.splice(i, 1);
   run(saveFeeds);
 };
 $('#rCheck').onclick = () => run(async () => {
   $('#rCheck').disabled = true;
-  try { const d = await post('/api/rss/check'); toast(`${d.added}টা নতুন ডাউনলোড যোগ হয়েছে`); await loadRss(); }
+  try { const d = await post('/api/rss/check'); toast(`${d.added}${t('টা নতুন ডাউনলোড যোগ হয়েছে')}`); await loadRss(); }
   finally { $('#rCheck').disabled = false; }
 });
-$('#rSaveSettings').onclick = () => run(() => post('/api/settings', { rss_dest: $('#rDest').value, rss_interval_min: +$('#rInterval').value || 15 }), 'সেভ হয়েছে');
+$('#rSaveSettings').onclick = () => run(() => post('/api/settings', { rss_dest: $('#rDest').value, rss_interval_min: +$('#rInterval').value || 15 }), t('সেভ হয়েছে'));
 
 // ---------- settings
 async function loadSettings() {
   await loadInfo();
   const s = info.state;
-  $('#sMe').textContent = `ইউজার: ${info.user} · অনুমতি: ${info.role}`;
-  $('#sVersion').textContent = `প্যানেল ভার্সন ${info.version}`;
+  $('#sMe').textContent = `${t('ইউজার:')} ${info.user} · ${t('অনুমতি:')} ${info.role}`;
+  $('#sVersion').textContent = `${t('প্যানেল ভার্সন')} ${info.version}`;
   if (!can('admin')) return;
   $('#sDown').value = s.speed_down_kb; $('#sUp').value = s.speed_up_kb;
   $('#sSched').checked = s.schedule_enabled; $('#sStart').value = s.schedule_start; $('#sEnd').value = s.schedule_end;
@@ -677,12 +790,12 @@ async function loadSettings() {
   if (s.autoupload_remote) $('#sAutoRemote').value = s.autoupload_remote;
   $('#sTgToken').value = s.telegram_token; $('#sTgChat').value = s.telegram_chat; $('#sTgNotify').checked = s.telegram_notify;
   $('#sTunnel').innerHTML = info.tunnel
-    ? `চালু আছে: <a href="${esc(info.tunnel)}" target="_blank" rel="noopener">${esc(info.tunnel)}</a><br>সার্ভার রিস্টার্ট হলে লিংক বদলে যায়। Telegram চালু থাকলে নতুন লিংক মেসেজে আসবে।`
-    : 'বন্ধ আছে। ডোমেইন ছাড়া ফ্রি HTTPS লিংক চাইলে সার্ভারে চালান: <code>curl -fsSL https://raw.githubusercontent.com/ABNET-RAKIB-123/aria2/main/install.sh | sudo TUNNEL=1 bash</code>';
+    ? `${t('চালু আছে:')} <a href="${esc(info.tunnel)}" target="_blank" rel="noopener">${esc(info.tunnel)}</a><br>${t('সার্ভার রিস্টার্ট হলে লিংক বদলে যায়। Telegram চালু থাকলে নতুন লিংক মেসেজে আসবে।')}`
+    : t('বন্ধ আছে। ডোমেইন ছাড়া ফ্রি HTTPS লিংক চাইলে সার্ভারে চালান: ') + '<code>curl -fsSL https://raw.githubusercontent.com/ABNET-RAKIB-123/aria2/main/install.sh | sudo TUNNEL=1 bash</code>';
   const u = await api('/api/users');
-  const R = { viewer: 'viewer (শুধু দেখা)', user: 'user', admin: 'admin' };
-  $('#uTable').innerHTML = '<tr><th>ইউজার</th><th>অনুমতি</th><th></th></tr>' + u.users.map(x =>
-    `<tr><td>${esc(x.name)}${x.name === info.user ? ' (আপনি)' : ''}</td><td>${R[x.role]}</td>
+  const R = { viewer: t('viewer (শুধু দেখা)'), user: 'user', admin: 'admin' };
+  $('#uTable').innerHTML = `<tr><th>${t('ইউজার')}</th><th>${t('অনুমতি')}</th><th></th></tr>` + u.users.map(x =>
+    `<tr><td>${esc(x.name)}${x.name === info.user ? t(' (আপনি)') : ''}</td><td>${R[x.role]}</td>
      <td><button class="btn sm" data-edit="${esc(x.name)}" data-role-v="${x.role}">✏</button>
      ${x.name === info.user ? '' : `<button class="btn sm danger" data-del="${esc(x.name)}">🗑</button>`}</td></tr>`).join('');
 }
@@ -691,27 +804,27 @@ const SAVE = {
     schedule_enabled: $('#sSched').checked, schedule_start: $('#sStart').value || '01:00', schedule_end: $('#sEnd').value || '08:00',
     tz_offset_min: -new Date().getTimezoneOffset(), disk_guard_gb: +$('#sGuard').value || 0 }),
   auto: () => {
-    if ($('#sAuto').checked && !info.remotes.length) throw new Error('আগে Cloud একাউন্ট কানেক্ট করুন');
+    if ($('#sAuto').checked && !info.remotes.length) throw new Error(t('আগে Cloud একাউন্ট কানেক্ট করুন'));
     return { autoupload: $('#sAuto').checked, autoupload_remote: $('#sAutoRemote').value, autoupload_dest: $('#sAutoDest').value, autoupload_move: $('#sAutoMove').checked };
   },
   telegram: () => ({ telegram_token: $('#sTgToken').value, telegram_chat: $('#sTgChat').value, telegram_notify: $('#sTgNotify').checked }),
 };
-$$('[data-save]').forEach(b => b.onclick = () => run(async () => { await post('/api/settings', SAVE[b.dataset.save]()); await loadSettings(); }, 'সেভ হয়েছে'));
-$('#sTgTest').onclick = () => run(() => post('/api/telegram/test'), 'মেসেজ পাঠানো হয়েছে, Telegram দেখুন');
+$$('[data-save]').forEach(b => b.onclick = () => run(async () => { await post('/api/settings', SAVE[b.dataset.save]()); await loadSettings(); }, t('সেভ হয়েছে')));
+$('#sTgTest').onclick = () => run(() => post('/api/telegram/test'), t('মেসেজ পাঠানো হয়েছে, Telegram দেখুন'));
 $('#pSave').onclick = () => run(async () => {
   await post('/api/password', { old: $('#pOld').value, new: $('#pNew').value });
   $('#pOld').value = $('#pNew').value = '';
-}, 'পাসওয়ার্ড বদলেছে');
+}, t('পাসওয়ার্ড বদলেছে'));
 $('#uSave').onclick = () => run(async () => {
   await post('/api/users/save', { name: $('#uName').value.trim(), password: $('#uPass').value, role: $('#uRole').value });
   $('#uName').value = $('#uPass').value = '';
   await loadSettings();
-}, 'ইউজার সেভ হয়েছে');
+}, t('ইউজার সেভ হয়েছে'));
 $('#uTable').onclick = e => {
   const ed = e.target.closest('[data-edit]'), del = e.target.closest('[data-del]');
   if (ed) { $('#uName').value = ed.dataset.edit; $('#uRole').value = ed.dataset.roleV; $('#uPass').focus(); }
-  if (del && confirm(`"${del.dataset.del}" ইউজার মুছবেন?`))
-    run(() => post('/api/users/delete', { name: del.dataset.del }), 'মুছে ফেলা হয়েছে').then(loadSettings);
+  if (del && confirm(`"${del.dataset.del}" ${t('ইউজার মুছবেন?')}`))
+    run(() => post('/api/users/delete', { name: del.dataset.del }), t('মুছে ফেলা হয়েছে')).then(loadSettings);
 };
 
 // ---------- subtitles
@@ -732,7 +845,7 @@ async function openSubs(p) {
   subVideo = p; subNew = [];
   $('#subReplace').checked = false;
   $('#subFile').textContent = p;
-  $('#subTracks').innerHTML = '<div class="empty">পড়া হচ্ছে...</div>';
+  $('#subTracks').innerHTML = `<div class="empty">${t('পড়া হচ্ছে...')}</div>`;
   $('#subNew').innerHTML = '';
   $('#subModal').classList.remove('hidden');
   subInfo = await run(() => api('/api/subs/info?path=' + enc(p)));
@@ -741,34 +854,34 @@ async function openSubs(p) {
 }
 function closeSubs() { $('#subModal').classList.add('hidden'); }
 function renderSubs() {
-  const t = subInfo.subs;
-  $('#subTracks').innerHTML = t.length ? t.map(x => `<div class="item">
-      <div class="name"><b>#${x.index + 1}</b> ${esc(LANG_NAME[x.language] || x.language || 'ভাষা লেখা নেই')}
-        ${x.title ? '· ' + esc(x.title) : ''} ${x.default ? '<span class="pill ok">ডিফল্ট</span>' : ''} ${x.forced ? '<span class="pill">forced</span>' : ''}
-        <div class="meta">${esc(x.codec)}${x.image ? ' (ছবির সাবটাইটেল)' : ''}</div></div>
+  const tracks = subInfo.subs;
+  $('#subTracks').innerHTML = tracks.length ? tracks.map(x => `<div class="item">
+      <div class="name"><b>#${x.index + 1}</b> ${esc(LANG_NAME[x.language] || x.language || t('ভাষা লেখা নেই'))}
+        ${x.title ? '· ' + esc(x.title) : ''} ${x.default ? `<span class="pill ok">${t('ডিফল্ট')}</span>` : ''} ${x.forced ? '<span class="pill">forced</span>' : ''}
+        <div class="meta">${esc(x.codec)}${x.image ? t(' (ছবির সাবটাইটেল)') : ''}</div></div>
       <div class="actions">
-        <label class="switch"><input type="radio" name="subDefault" value="old:${x.index}"> ডিফল্ট</label>
-        <label class="switch"><input type="checkbox" data-rm="${x.index}"> মুছো</label>
-        ${x.image ? '' : `<button class="btn sm" data-extract="${x.index}" title=".srt ফাইল হিসেবে আলাদা করো">⬇ .srt</button>`}
+        <label class="switch"><input type="radio" name="subDefault" value="old:${x.index}"> ${t('ডিফল্ট')}</label>
+        <label class="switch"><input type="checkbox" data-rm="${x.index}"> ${t('মুছো')}</label>
+        ${x.image ? '' : `<button class="btn sm" data-extract="${x.index}" title="${t('.srt ফাইল হিসেবে আলাদা করো')}">⬇ .srt</button>`}
       </div></div>`).join('')
-    : '<div class="empty">এই ভিডিওতে আলাদা (soft) সাবটাইটেল নেই। ছবির ভেতরে লেখা থাকলে সেটা মোছা যায় না।</div>';
+    : `<div class="empty">${t('এই ভিডিওতে আলাদা (soft) সাবটাইটেল নেই। ছবির ভেতরে লেখা থাকলে সেটা মোছা যায় না।')}</div>`;
   $('#subPick').innerHTML = subInfo.files.length
     ? subInfo.files.map(f => `<option value="${esc(f)}">${esc(baseName(f))}</option>`).join('')
-    : '<option value="">এই ফোল্ডারে কোনো সাবটাইটেল ফাইল নেই</option>';
+    : `<option value="">${t('এই ফোল্ডারে কোনো সাবটাইটেল ফাইল নেই')}</option>`;
   renderSubNew();
 }
 function renderSubNew() {
   $('#subNew').innerHTML = subNew.map((n, i) => `<div class="item">
       <div class="name">➕ ${esc(baseName(n.path))}</div>
       <div class="actions">
-        <select data-lang="${i}">${LANGS.map(([c, l]) => `<option value="${c}" ${c === n.lang ? 'selected' : ''}>${l}</option>`).join('')}</select>
-        <input type="text" data-title="${i}" placeholder="নাম (ঐচ্ছিক)" value="${esc(n.title)}" style="width:120px">
-        <label class="switch"><input type="radio" name="subDefault" value="new:${i}"> ডিফল্ট</label>
+        <select data-lang="${i}">${LANGS.map(([c, l]) => `<option value="${c}" ${c === n.lang ? 'selected' : ''}>${t(l)}</option>`).join('')}</select>
+        <input type="text" data-title="${i}" placeholder="${t('নাম (ঐচ্ছিক)')}" value="${esc(n.title)}" style="width:120px">
+        <label class="switch"><input type="radio" name="subDefault" value="new:${i}"> ${t('ডিফল্ট')}</label>
         <button class="btn sm danger" data-unadd="${i}">✖</button>
       </div></div>`).join('');
-  const burn = subInfo.subs.map(x => `<option value="track:${x.index}">ভিডিওর #${x.index + 1} (${esc(LANG_NAME[x.language] || x.language || '?')})</option>`)
-    .concat([...new Set([...subNew.map(n => n.path), ...subInfo.files])].map(f => `<option value="file:${esc(f)}">ফাইল: ${esc(baseName(f))}</option>`));
-  $('#subBurnSrc').innerHTML = burn.join('') || '<option value="">আগে একটা সাবটাইটেল যোগ করুন</option>';
+  const burn = subInfo.subs.map(x => `<option value="track:${x.index}">${t('ভিডিওর')} #${x.index + 1} (${esc(LANG_NAME[x.language] || x.language || '?')})</option>`)
+    .concat([...new Set([...subNew.map(n => n.path), ...subInfo.files])].map(f => `<option value="file:${esc(f)}">${t('ফাইল:')} ${esc(baseName(f))}</option>`));
+  $('#subBurnSrc').innerHTML = burn.join('') || `<option value="">${t('আগে একটা সাবটাইটেল যোগ করুন')}</option>`;
 }
 function addSubFile(path) {
   if (!path || subNew.some(n => n.path === path)) return;
@@ -799,29 +912,29 @@ $('#subNew').onclick = e => {
 };
 $('#subTracks').onclick = e => {
   const b = e.target.closest('[data-extract]');
-  if (b) run(() => post('/api/subs/extract', { path: subVideo, index: +b.dataset.extract }), '.srt ফাইল বানানো শুরু হয়েছে, ভিডিওর পাশেই পাবেন').then(tick);
+  if (b) run(() => post('/api/subs/extract', { path: subVideo, index: +b.dataset.extract }), t('.srt ফাইল বানানো শুরু হয়েছে, ভিডিওর পাশেই পাবেন')).then(tick);
 };
 $('#subSave').onclick = () => run(async () => {
   const remove = $$('#subTracks [data-rm]:checked').map(c => +c.dataset.rm);
   const d = ($('input[name=subDefault]:checked') || {}).value || 'keep';
   const def = d === 'keep' ? {} : d === 'off' ? { type: 'off' } : { type: d.split(':')[0], index: +d.split(':')[1] };
-  if (def.type === 'old' && remove.includes(def.index)) throw new Error('যেটা মুছছেন সেটাকে ডিফল্ট করা যাবে না');
-  if ($('#subReplace').checked && !confirm('আসল ভিডিও ফাইলটা বদলে যাবে। চালিয়ে যাবেন?')) return;
+  if (def.type === 'old' && remove.includes(def.index)) throw new Error(t('যেটা মুছছেন সেটাকে ডিফল্ট করা যাবে না'));
+  if ($('#subReplace').checked && !confirm(t('আসল ভিডিও ফাইলটা বদলে যাবে। চালিয়ে যাবেন?'))) return;
   await post('/api/subs/edit', { path: subVideo, remove, add: subNew.map(n => ({ path: n.path, lang: n.lang === 'und' ? '' : n.lang, title: n.title })),
     default: def, replace: $('#subReplace').checked });
   closeSubs();
-  toast('সাবটাইটেলের কাজ শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন');
+  toast(t('সাবটাইটেলের কাজ শুরু হয়েছে, "ট্রান্সফার" ট্যাবে দেখুন'));
   tick();
 });
 $('#subBurn').onclick = () => run(async () => {
   const v = $('#subBurnSrc').value;
-  if (!v) throw new Error('আগে একটা সাবটাইটেল যোগ করুন');
+  if (!v) throw new Error(t('আগে একটা সাবটাইটেল যোগ করুন'));
   const [type, ...rest] = v.split(':');
   const val = rest.join(':');
   await post('/api/subs/burn', { path: subVideo, quality: $('#subBurnQ').value,
     source: type === 'track' ? { type, index: +val } : { type, path: val } });
   closeSubs();
-  toast('সাবটাইটেল বসানো শুরু হয়েছে। অনেক সময় লাগতে পারে, "ট্রান্সফার" ট্যাবে progress দেখুন');
+  toast(t('সাবটাইটেল বসানো শুরু হয়েছে। অনেক সময় লাগতে পারে, "ট্রান্সফার" ট্যাবে progress দেখুন'));
   tick();
 });
 

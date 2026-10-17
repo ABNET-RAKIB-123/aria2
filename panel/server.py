@@ -1995,6 +1995,83 @@ STATIC_FILES = {
 }
 
 
+# Static error messages -> English, picked when the request carries X-Lang: en.
+# Messages built with a value (%s/%d) stay Bangla (they won't match a key).
+MSG_EN = {
+    "ভুল পাথ": "Invalid path", "ভুল নাম": "Invalid name",
+    "rclone ইনস্টল নেই": "rclone is not installed",
+    "rclone সময়মতো উত্তর দেয়নি": "rclone did not respond in time",
+    "rclone ব্যর্থ হয়েছে": "rclone failed",
+    "Cloud একাউন্ট পাওয়া যায়নি, আগে কানেক্ট করুন": "No cloud account found, connect one first",
+    "টোকেন পড়া যায়নি। rclone যা দেখিয়েছে পুরোটা পেস্ট করুন।": "Could not read the token. Paste everything rclone showed.",
+    "এই ধরনের একাউন্ট সাপোর্ট করে না": "This account type is not supported",
+    "rclone লগইন শুরু করতে পারেনি": "rclone could not start login",
+    "লগইন লিংক পাওয়া যায়নি, টোকেন পদ্ধতি ব্যবহার করুন": "No login link; use the token method",
+    "address bar-এর পুরো লিংক পেস্ট করুন (এতে code= থাকে)": "Paste the full address-bar link (it contains code=)",
+    "লগইনের মেয়াদ শেষ, আবার লিংক তৈরি করুন": "Login expired, make a new link",
+    "rclone লগইন হেল্পারে পৌঁছানো যায়নি": "Could not reach the rclone login helper",
+    "লগইনের সময় শেষ": "Login timed out", "aria2 চলছে না": "aria2 is not running",
+    "ভিডিও লিংক http/https হতে হবে": "The video link must be http/https",
+    "yt-dlp ইনস্টল নেই": "yt-dlp is not installed",
+    "সাবটাইটেলের ভাষা এভাবে লিখুন: bn,en": "Write the subtitle languages like: bn,en",
+    "এটা Google Drive লিংক না": "This is not a Google Drive link",
+    "ভিডিও সাইটের লিংক আগে সার্ভারে নামান (অটো আপলোড চালু রাখলে Cloud-এ যাবে)":
+        "Download video-site links to the server first (auto-upload will send them to the cloud)",
+    "Magnet/Torrent সরাসরি Cloud-এ যায় না, আগে সার্ভারে নামান":
+        "Magnet/Torrent cannot go straight to the cloud; download to the server first",
+    "ইউজারনেম বা পাসওয়ার্ড ভুল": "Wrong username or password",
+    "বর্তমান পাসওয়ার্ড ভুল": "Current password is wrong",
+    "নতুন পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে": "The new password must be at least 8 characters",
+    "ইউজারনেম শুধু ইংরেজি অক্ষর, সংখ্যা, _ . - দিয়ে (১-৩২ অক্ষর)":
+        "Username may use only letters, digits, _ . - (1–32 chars)",
+    "ভুল role": "Invalid role",
+    "নতুন ইউজারের পাসওয়ার্ড কমপক্ষে ৮ অক্ষর": "A new user's password must be at least 8 characters",
+    "পাসওয়ার্ড কমপক্ষে ৮ অক্ষর": "Password must be at least 8 characters",
+    "অন্তত একজন admin থাকতে হবে": "At least one admin is required",
+    "নিজেকে মুছতে পারবেন না": "You cannot delete yourself",
+    "সময় HH:MM আকারে দিন (যেমন 01:30)": "Enter the time as HH:MM (e.g. 01:30)",
+    "মান ০ বা তার বেশি হতে হবে": "The value must be 0 or more",
+    "Telegram বট টোকেন ঠিক নেই": "The Telegram bot token is invalid",
+    "আগে বট টোকেন আর Chat ID সেভ করুন": "Save the bot token and Chat ID first",
+    "মেসেজ যায়নি। টোকেন/Chat ID দেখুন, আর বটকে একবার /start পাঠান।":
+        "Message failed. Check the token/Chat ID and send /start to the bot once.",
+    "RSS লিংক http/https হতে হবে": "The RSS link must be http/https",
+    "এই কমান্ড চলবে না": "This command is not allowed", "অনুমতি নেই": "Not allowed",
+    "এই কাজের অনুমতি আপনার নেই": "You don't have permission for this",
+    "লগইন দরকার": "Login required", "X-Panel header নেই": "Missing X-Panel header",
+    "পাওয়া যায়নি": "Not found", "ভুল JSON": "Invalid JSON",
+    "অনেক বড় রিকোয়েস্ট": "Request too large", "আগে লিংক দিন": "Enter a link first",
+    "ফোল্ডার পাওয়া যায়নি": "Folder not found", "কী খুঁজবেন লিখুন": "Type what to search for",
+    "Content-Length দরকার": "Content-Length required",
+    "আপলোড মাঝপথে থেমে গেছে": "Upload stopped midway",
+    "ফাইল পাওয়া যায়নি": "File not found", "কিছু সিলেক্ট করা নেই": "Nothing selected",
+    "ছবি নেই": "No image", "ffmpeg নেই": "ffmpeg is missing", "ছবি বানানো যায়নি": "Could not make the image",
+    "ভুল ডাউনলোড ফোল্ডার": "Invalid download folder", "ভুল ফাইলের নাম": "Invalid file name",
+    "মূল ফোল্ডারের নাম বদলানো যাবে না": "The root folder cannot be renamed",
+    "এই নামে আগে থেকেই আছে": "Something with this name already exists",
+    "মূল ফোল্ডার মোছা যাবে না": "The root folder cannot be deleted",
+    "মূল ফোল্ডার সরানো যাবে না": "The root folder cannot be moved",
+    "ফোল্ডারকে তার নিজের ভেতরে সরানো যাবে না": "A folder cannot be moved inside itself",
+    "এটা zip/rar/7z/tar ফাইল না": "This is not a zip/rar/7z/tar file",
+    "7zip ইনস্টল নেই": "7zip is not installed", "ffmpeg ইনস্টল নেই": "ffmpeg is not installed",
+    "ভিডিও পড়তে অনেক সময় লাগছে": "Reading the video is taking too long",
+    "ভিডিও ফাইল পড়া যায়নি": "Could not read the video file", "এটা ভিডিও ফাইল না": "This is not a video file",
+    "ভুল সাবটাইটেল নম্বর": "Invalid subtitle number",
+    "সাবটাইটেল ফাইল পাওয়া যায়নি (.srt/.ass/.vtt)": "Subtitle file not found (.srt/.ass/.vtt)",
+    "কিছুই বদলানো হয়নি": "Nothing was changed",
+    "এই ভিডিওতে ছবির (PGS/DVD) সাবটাইটেল আছে, যা MP4-এ রাখা যায় না। ওগুলো মুছে দিন।":
+        "This video has image (PGS/DVD) subtitles that can't be kept in MP4. Remove them.",
+    "এটা ছবির (PGS/DVD) সাবটাইটেল, লেখা হিসেবে বের করা যায় না":
+        "This is an image (PGS/DVD) subtitle; it can't be extracted as text",
+    "সাবটাইটেল ফাইল পাওয়া যায়নি": "Subtitle file not found",
+    "কোন সাবটাইটেল বসাবেন বেছে নিন": "Choose which subtitle to burn in",
+    "ফাইল বা ফোল্ডার বেছে নিন": "Choose a file or folder", "ফাইল বেছে নিন": "Choose a file",
+    "Cloud থেকে পড়া যায়নি": "Could not read from the cloud", "Cloud-এ আপলোড ব্যর্থ": "Cloud upload failed",
+    "ফাইলটা আর নেই": "The file is gone", "লিংক ঠিক নেই": "Invalid link",
+    "এই লিংকের মেয়াদ শেষ": "This link has expired",
+}
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "aria2-panel"
 
@@ -2017,6 +2094,7 @@ class Handler(BaseHTTPRequestHandler):
         self.sent = False
         self.extra_headers = []
         self.user = self.role = None
+        self.lang = self.headers.get("X-Lang", "bn")
         url = urllib.parse.urlsplit(self.path)
         self.query_all = urllib.parse.parse_qs(url.query)
         self.query = {k: v[0] for k, v in self.query_all.items()}
@@ -2084,6 +2162,8 @@ class Handler(BaseHTTPRequestHandler):
     def send_json(self, data, code=200):
         if self.sent:
             return
+        if getattr(self, "lang", "bn") == "en" and isinstance(data, dict) and "error" in data:
+            data = dict(data, error=MSG_EN.get(data["error"], data["error"]))
         body = json.dumps(data).encode()
         self.send_response(code)
         self.send_header("Content-Type", "application/json; charset=utf-8")
